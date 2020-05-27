@@ -36,7 +36,7 @@ namespace GoThrough
             {
                 this.CreateViewTexture();
 
-                Matrix4x4 matrix = this.pairPortal.transform.localToWorldMatrix * Matrix4x4.Scale(new Vector3(-1, 1, -1)) * this.transform.worldToLocalMatrix * camera.transform.localToWorldMatrix;
+                Matrix4x4 matrix = this.pairPortal.transform.localToWorldMatrix * this.transform.worldToLocalMatrix * camera.transform.localToWorldMatrix;
                 this.portalCamera.transform.SetPositionAndRotation(matrix.GetColumn(3), matrix.rotation);
 
                 this.SetProjectionMatrix(camera);
@@ -61,10 +61,8 @@ namespace GoThrough
 
                 if (oldDot < 0 && newDot >= 0)
                 {
-                    Matrix4x4 matrix = this.pairPortal.transform.localToWorldMatrix * Matrix4x4.Scale(new Vector3(-1, 1, -1)) * this.transform.worldToLocalMatrix;
-                    Vector4 translation = matrix.GetColumn(3);
-                    traveller.transform.rotation *= matrix.rotation;
-                    traveller.transform.position += new Vector3(translation.x, translation.y, translation.z);
+                    Matrix4x4 matrix = this.pairPortal.transform.localToWorldMatrix * this.transform.worldToLocalMatrix * traveller.transform.localToWorldMatrix;
+                    traveller.transform.SetPositionAndRotation(matrix.GetColumn(3), matrix.rotation);
                     this.trackedTravellers.Remove(traveller);
                     continue;
                 }
@@ -78,9 +76,7 @@ namespace GoThrough
             Rigidbody rb = other.attachedRigidbody;
             PortalTraveller traveller = rb ? rb.GetComponent<PortalTraveller>() : other.GetComponent<PortalTraveller>();
             if (traveller)
-            {
                 this.trackedTravellers.Add(traveller, traveller.transform.position);
-            }
         }
 
         private void OnTriggerExit(Collider other)
@@ -88,9 +84,7 @@ namespace GoThrough
             Rigidbody rb = other.attachedRigidbody;
             PortalTraveller traveller = rb ? rb.GetComponent<PortalTraveller>() : other.GetComponent<PortalTraveller>();
             if (traveller)
-            {
                 this.trackedTravellers.Remove(traveller);
-            }
         }
 
         private void CreateViewTexture()
