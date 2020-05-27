@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace GoThrough
 {
@@ -13,27 +14,35 @@ namespace GoThrough
         [SerializeField]
         private Transform pairPortal;
 
-        private Camera mainCamera;
-
         private RenderTexture renderTexture;
         private float nearClipOffset = 0.05f;
         private float nearClipLimit = 0.2f;
 
         private Dictionary<PortalTraveller, Vector3> trackedTravellers = new Dictionary<PortalTraveller, Vector3>();
 
-        private void Awake()
+        private void OnEnable()
         {
-            this.mainCamera = Camera.main;
+            RenderPipelineManager.beginCameraRendering += this.Render;
         }
 
-        private void Update()
+        private void OnDisable()
         {
-            this.CreateViewTexture();
+            RenderPipelineManager.beginCameraRendering -= this.Render;
+        }
 
-            Matrix4x4 matrix = this.pairPortal.transform.localToWorldMatrix * Matrix4x4.Scale(new Vector3(-1, 1, -1)) * this.transform.worldToLocalMatrix * this.mainCamera.transform.localToWorldMatrix;
-            this.portalCamera.transform.SetPositionAndRotation(matrix.GetColumn(3), matrix.rotation);
-        
-            this.SetProjectionMatrix(this.mainCamera);
+        private void Render(ScriptableRenderContext context, Camera camera)
+        {
+            if ((camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView))
+            {
+                this.CreateViewTexture();
+
+                Matrix4x4 matrix = this.pairPortal.transform.localToWorldMatrix * Matrix4x4.Scale(new Vector3(-1, 1, -1)) * this.transform.worldToLocalMatrix * camera.transform.localToWorldMatrix;
+                this.portalCamera.transform.SetPositionAndRotation(matrix.GetColumn(3), matrix.rotation);
+
+                this.SetProjectionMatrix(camera);
+
+                UniversalRenderPipeline.RenderSingleCamera(context, this.portalCamera);
+            }
         }
 
         private void LateUpdate()
@@ -89,10 +98,10 @@ namespace GoThrough
             if (renderTexture == null || renderTexture.width != Screen.width || renderTexture.height != Screen.height)
             {
                 if (renderTexture != null)
-                {
                     renderTexture.Release();
-                }
+
                 renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
+
                 // Render the view from the portal camera to the view texture
                 portalCamera.targetTexture = renderTexture;
 
