@@ -12,7 +12,10 @@ namespace GoThrough
         private Camera portalCamera;
 
         [SerializeField]
-        private Transform pairPortal;
+        private Transform destiny;
+
+        [SerializeField]
+        private new MeshRenderer renderer;
 
         private RenderTexture renderTexture;
         private float nearClipOffset = 0.05f;
@@ -36,7 +39,7 @@ namespace GoThrough
             {
                 this.CreateViewTexture();
 
-                Matrix4x4 matrix = this.pairPortal.transform.localToWorldMatrix * this.transform.worldToLocalMatrix * camera.transform.localToWorldMatrix;
+                Matrix4x4 matrix = this.destiny.transform.localToWorldMatrix * this.transform.worldToLocalMatrix * camera.transform.localToWorldMatrix;
                 this.portalCamera.transform.SetPositionAndRotation(matrix.GetColumn(3), matrix.rotation);
 
                 this.SetProjectionMatrix(camera);
@@ -61,7 +64,7 @@ namespace GoThrough
 
                 if (oldDot < 0 && newDot >= 0)
                 {
-                    Matrix4x4 matrix = this.pairPortal.transform.localToWorldMatrix * this.transform.worldToLocalMatrix * traveller.transform.localToWorldMatrix;
+                    Matrix4x4 matrix = this.destiny.transform.localToWorldMatrix * this.transform.worldToLocalMatrix * traveller.transform.localToWorldMatrix;
                     traveller.transform.SetPositionAndRotation(matrix.GetColumn(3), matrix.rotation);
                     this.trackedTravellers.Remove(traveller);
                     continue;
@@ -100,7 +103,7 @@ namespace GoThrough
                 portalCamera.targetTexture = renderTexture;
 
                 // Display the view texture on the screen of the linked portal
-                this.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", renderTexture);
+                this.renderer.material.SetTexture("_MainTex", renderTexture);
             }
         }
 
@@ -110,7 +113,7 @@ namespace GoThrough
         {
             // Learning resource:
             // http://www.terathon.com/lengyel/Lengyel-Oblique.pdf
-            Transform clipPlane = this.pairPortal.transform;
+            Transform clipPlane = this.destiny.transform;
             int dot = System.Math.Sign(Vector3.Dot(clipPlane.forward, clipPlane.position - this.portalCamera.transform.position));
 
             Vector3 camSpacePos = this.portalCamera.worldToCameraMatrix.MultiplyPoint(clipPlane.position);
