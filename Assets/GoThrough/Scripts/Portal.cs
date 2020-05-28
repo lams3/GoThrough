@@ -21,7 +21,14 @@ namespace GoThrough
         private float nearClipOffset = 0.05f;
         private float nearClipLimit = 0.2f;
 
+        private Vector3 originalScreenPosition;
+
         private Dictionary<PortalTraveller, Vector3> trackedTravellers = new Dictionary<PortalTraveller, Vector3>();
+
+        private void Awake()
+        {
+            this.originalScreenPosition = this.renderer.transform.localPosition;
+        }
 
         private void OnEnable()
         {
@@ -37,14 +44,28 @@ namespace GoThrough
         {
             if ((camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView))
             {
+                if (camera.cameraType == CameraType.SceneView)
+                    return;
+
+                float viewDot = Vector3.Dot((camera.transform.position - this.originalScreenPosition).normalized, -this.renderer.transform.forward);
+                this.renderer.enabled = viewDot >= 0;
+
+                if (!this.renderer.enabled)
+                    return;
+
                 this.CreateViewTexture();
+                this.ProtectFromNearPlaneClipping(camera);
 
                 Matrix4x4 matrix = this.destiny.transform.localToWorldMatrix * this.transform.worldToLocalMatrix * camera.transform.localToWorldMatrix;
                 this.portalCamera.transform.SetPositionAndRotation(matrix.GetColumn(3), matrix.rotation);
 
                 this.SetProjectionMatrix(camera);
 
+                this.renderer.enabled = false;
+
                 UniversalRenderPipeline.RenderSingleCamera(context, this.portalCamera);
+
+                this.renderer.enabled = true;
             }
         }
 
@@ -105,6 +126,18 @@ namespace GoThrough
                 // Display the view texture on the screen of the linked portal
                 this.renderer.material.SetTexture("_MainTex", renderTexture);
             }
+        }
+
+        private void ProtectFromNearPlaneClipping(Camera camera)
+        {
+            float halfHeight = camera.nearClipPlane * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+            float halfWidth = halfHeight * camera.aspect;
+            float dstToNearPlaneCorner = new Vector3(halfWidth, halfHeight, camera.nearClipPlane).magnitude;
+
+            Transform screenT = this.renderer.transform;
+            float camFacing = 0.5f * Mathf.Sign(Vector3.Dot(this.transform.forward, this.transform.position - camera.transform.position));
+            screenT.localScale = new Vector3(screenT.localScale.x, screenT.localScale.y, dstToNearPlaneCorner);
+            screenT.localPosition = this.originalScreenPosition + (Vector3.forward * dstToNearPlaneCorner * camFacing);
         }
 
         // Use custom projection matrix to align portal camera's near clip plane with the surface of the portal

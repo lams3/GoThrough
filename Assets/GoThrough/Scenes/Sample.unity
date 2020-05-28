@@ -1102,7 +1102,7 @@ CapsuleCollider:
   m_Radius: 0.5
   m_Height: 2
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!4 &1369451609
 Transform:
   m_ObjectHideFlags: 0
@@ -1111,7 +1111,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1369451606}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -5}
+  m_LocalPosition: {x: 0, y: 0, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1648555557}
@@ -1308,6 +1308,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9211354034918405880, guid: 4783fd255cab6934688a0f10bbb4c527,
         type: 3}
+      propertyPath: disableOnRender.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9211354034918405880, guid: 4783fd255cab6934688a0f10bbb4c527,
+        type: 3}
       propertyPath: pairPortal
       value: 
       objectReference: {fileID: 339395547}
@@ -1316,6 +1321,11 @@ PrefabInstance:
       propertyPath: destiny
       value: 
       objectReference: {fileID: 339395547}
+    - target: {fileID: 9211354034918405880, guid: 4783fd255cab6934688a0f10bbb4c527,
+        type: 3}
+      propertyPath: disableOnRender.Array.data[0]
+      value: 
+      objectReference: {fileID: 1938477364}
     - target: {fileID: 9211354034931370016, guid: 4783fd255cab6934688a0f10bbb4c527,
         type: 3}
       propertyPath: m_TargetTexture
@@ -1426,7 +1436,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1648555556}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.8, z: 0}
+  m_LocalPosition: {x: 0, y: 1.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1369451609}
@@ -1632,6 +1642,12 @@ Transform:
   m_Father: {fileID: 1609339786}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &1938477364 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1638785007675074727, guid: 4783fd255cab6934688a0f10bbb4c527,
+    type: 3}
+  m_PrefabInstance: {fileID: 1563934025}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1969268501
 GameObject:
   m_ObjectHideFlags: 0
@@ -1850,6 +1866,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9211354034918405880, guid: 4783fd255cab6934688a0f10bbb4c527,
         type: 3}
+      propertyPath: disableOnRender.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9211354034918405880, guid: 4783fd255cab6934688a0f10bbb4c527,
+        type: 3}
       propertyPath: pairPortal
       value: 
       objectReference: {fileID: 943467748}
@@ -1858,6 +1879,11 @@ PrefabInstance:
       propertyPath: destiny
       value: 
       objectReference: {fileID: 943467748}
+    - target: {fileID: 9211354034918405880, guid: 4783fd255cab6934688a0f10bbb4c527,
+        type: 3}
+      propertyPath: disableOnRender.Array.data[0]
+      value: 
+      objectReference: {fileID: 1938477364}
     - target: {fileID: 9211354034931370016, guid: 4783fd255cab6934688a0f10bbb4c527,
         type: 3}
       propertyPath: m_TargetTexture
