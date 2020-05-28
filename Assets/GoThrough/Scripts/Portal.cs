@@ -44,14 +44,18 @@ namespace GoThrough
         {
             if ((camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView))
             {
-                if (camera.cameraType == CameraType.SceneView)
-                    return;
-
                 float viewDot = Vector3.Dot((camera.transform.position - this.originalScreenPosition).normalized, -this.renderer.transform.forward);
-                this.renderer.enabled = viewDot >= 0;
+                bool cameraIsInFront = viewDot >= 0;
+                bool isVisibleFromCamera = this.renderer.IsVisibleFrom(camera);
+                bool shouldRender = cameraIsInFront && isVisibleFromCamera;
 
-                if (!this.renderer.enabled)
+                if (!shouldRender)
+                {
+                    this.renderer.enabled = false;
                     return;
+                }
+
+                this.renderer.enabled = true;
 
                 this.CreateViewTexture();
                 this.ProtectFromNearPlaneClipping(camera);
@@ -61,11 +65,7 @@ namespace GoThrough
 
                 this.SetProjectionMatrix(camera);
 
-                this.renderer.enabled = false;
-
                 UniversalRenderPipeline.RenderSingleCamera(context, this.portalCamera);
-
-                this.renderer.enabled = true;
             }
         }
 
