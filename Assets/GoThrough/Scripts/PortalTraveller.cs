@@ -12,8 +12,18 @@ namespace GoThrough
         private GameObject graphicsClone;
         private List<Material> originalMaterials;
         private List<Material> cloneMaterials;
+        private new Rigidbody rigidbody;
 
-        Transform source, destiny;
+        private Transform source, destiny;
+
+        public void Teleport(Portal source, Portal destination)
+        {
+            Matrix4x4 outMatrix = destination.OutTransform.localToWorldMatrix * source.transform.worldToLocalMatrix * this.transform.localToWorldMatrix;
+            this.transform.SetPositionAndRotation(outMatrix.GetColumn(3), outMatrix.rotation);
+
+            this.rigidbody.velocity = outMatrix.MultiplyVector(rigidbody.velocity);
+            this.rigidbody.angularVelocity = outMatrix.MultiplyVector(rigidbody.angularVelocity);
+        }
 
         public void BeginTransition(Transform source, Transform destiny)
         {
@@ -49,6 +59,11 @@ namespace GoThrough
 
             foreach (Material mat in this.cloneMaterials)
                 mat.SetInt("_UseClipPlane", 0);
+        }
+
+        private void Awake()
+        {
+            this.rigidbody = this.GetComponent<Rigidbody>();
         }
 
         private void LateUpdate()

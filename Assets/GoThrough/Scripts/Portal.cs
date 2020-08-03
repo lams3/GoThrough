@@ -104,17 +104,11 @@ namespace GoThrough
         private void OnEnable()
         {
             PortalManager.Instance?.Subscribe(this);
-
-            //RenderPipelineManager.beginCameraRendering += this.BaseRender;
-            //Portal.OnPortalPreRender += this.RecurseRender;
         }
 
         private void OnDisable()
         {
             PortalManager.Instance?.Unsubscribe(this);
-
-            //RenderPipelineManager.beginCameraRendering -= this.BaseRender;
-            //Portal.OnPortalPreRender -= this.RecurseRender;
         }
 
         private void LateUpdate()
@@ -159,21 +153,15 @@ namespace GoThrough
             if (!this.trackedTravellers.ContainsKey(traveller))
                 return;
 
-            Vector3 oldPos = this.trackedTravellers[traveller];
-            Vector3 newPos = traveller.transform.position;
-            Vector3 thisPos = this.transform.position;
-            float oldDot = Vector3.Dot(this.transform.forward, (oldPos - thisPos).normalized);
-            float newDot = Vector3.Dot(this.transform.forward, (newPos - thisPos).normalized);
+            Vector3 oldPos = this.transform.InverseTransformPoint(this.trackedTravellers[traveller]);
+            Vector3 newPos = this.transform.InverseTransformPoint(traveller.transform.position);
 
-            bool passFront = oldDot >= 0 && newDot < 0;
+            bool passFront = oldPos.z >= 0 && newPos.z < 0;
             if (passFront)
             {
                 this.StopTracking(traveller);
-                Matrix4x4 outMatrix = this.destiny.OutTransform.localToWorldMatrix * this.transform.worldToLocalMatrix * traveller.transform.localToWorldMatrix;
-                traveller.transform.SetPositionAndRotation(outMatrix.GetColumn(3), outMatrix.rotation);
+                traveller.Teleport(this, this.destiny);
                 this.destiny.BeginTracking(traveller);
-
-                Debug.Log(this.name);
                 return;
             }
 
