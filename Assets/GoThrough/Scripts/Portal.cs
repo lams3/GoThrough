@@ -71,8 +71,6 @@ namespace GoThrough
 
         public Portal destiny;
 
-        public bool teleport = true;
-
         #endregion
 
         #region PrivateMembers
