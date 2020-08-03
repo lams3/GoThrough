@@ -1,171 +1,194 @@
-﻿using System.Collections.Generic;
+﻿using GoThrough.Utility;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 namespace GoThrough
 {
     public class Portal : MonoBehaviour
     {
-        [SerializeField]
+        #region NewCode
+
+        public Transform OutTransform => this.outTransform;
+
+        public bool IsVisibleFrom(Camera camera)
+        {
+            return this.screen.IsVisibleFrom(camera);
+        }
+
+        public bool IsVisibleWithin(Camera camera, Portal portal)
+        {
+            return camera.BoundsOverlap(portal.screenMeshFilter, this.screenMeshFilter);
+        }
+
+        public void SetTexture(Texture texture)
+        {
+            this.screen.material.SetTexture("_MainTex", texture);
+        }
+
+        public Texture GetTexture()
+        {
+            return this.screen.material.GetTexture("_MainTex");
+        }
+
+        public Vector4 GetClippingPlane()
+        {
+            Plane clipPlane = new Plane(-this.OutTransform.forward, this.OutTransform.position);
+            Vector4 clipPlaneVector = new Vector4(clipPlane.normal.x, clipPlane.normal.y, clipPlane.normal.z, clipPlane.distance);
+            return clipPlaneVector;
+        }
+
+        public void SetupScreen(Camera camera)
+        {
+            float halfHeight = camera.nearClipPlane * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+            float halfWidth = halfHeight * camera.aspect;
+            float dstToNearPlaneCorner = new Vector3(halfWidth, halfHeight, camera.nearClipPlane).magnitude;
+            float screenThickness = dstToNearPlaneCorner;
+
+            Vector3 offset = -Vector3.forward * screenThickness * 0.5f;
+
+            Transform screenT = this.screen.transform;
+            screenT.localPosition = this.originalScreenPosition + offset;
+            screenT.localScale = new Vector3(screenT.localScale.x, screenT.localScale.y, screenThickness);
+        }
+
+        public void EnableScreen()
+        {
+            this.screen.shadowCastingMode = ShadowCastingMode.TwoSided;
+            this.screen.enabled = true;
+        }
+
+        public void DisableScreen()
+        {
+            this.screen.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+            this.screen.enabled = false;
+        }
+
+        #endregion
+
+        #region Parameters
+
+        public Portal destiny;
+
+        public bool teleport = true;
+
+        #endregion
+
+        #region PrivateMembers
+
         private Camera portalCamera;
+        private RenderTexture frontBuffer, backBuffer;
 
-        [SerializeField]
-        private Transform destiny;
-
-        [SerializeField]
-        private new MeshRenderer renderer;
-
-        private RenderTexture renderTexture;
-        private float nearClipOffset = 0.05f;
-        private float nearClipLimit = 0.2f;
-
+        private MeshRenderer screen;
+        private MeshFilter screenMeshFilter;
         private Vector3 originalScreenPosition;
 
+        private Transform outTransform;
         private Dictionary<PortalTraveller, Vector3> trackedTravellers = new Dictionary<PortalTraveller, Vector3>();
+
+        #endregion
+
+        #region Lifecycle
 
         private void Awake()
         {
-            this.originalScreenPosition = this.renderer.transform.localPosition;
+            this.outTransform = this.transform.Find("OutTransform");
+            this.portalCamera = this.transform.Find("Camera").GetComponent<Camera>();
+            this.screen = this.transform.Find("Screen").GetComponent<MeshRenderer>();
+
+            this.screenMeshFilter = this.screen.GetComponent<MeshFilter>();
+            this.originalScreenPosition = this.screen.transform.localPosition;
         }
 
         private void OnEnable()
         {
-            RenderPipelineManager.beginCameraRendering += this.Render;
+            PortalManager.Instance?.Subscribe(this);
+
+            //RenderPipelineManager.beginCameraRendering += this.BaseRender;
+            //Portal.OnPortalPreRender += this.RecurseRender;
         }
 
         private void OnDisable()
         {
-            RenderPipelineManager.beginCameraRendering -= this.Render;
-        }
+            PortalManager.Instance?.Unsubscribe(this);
 
-        private void Render(ScriptableRenderContext context, Camera camera)
-        {
-            if ((camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView))
-            {
-                float viewDot = Vector3.Dot((camera.transform.position - this.originalScreenPosition).normalized, -this.renderer.transform.forward);
-                bool cameraIsInFront = viewDot >= 0;
-                bool isVisibleFromCamera = this.renderer.IsVisibleFrom(camera);
-                bool shouldRender = cameraIsInFront && isVisibleFromCamera;
-
-                if (!shouldRender)
-                {
-                    this.renderer.enabled = false;
-                    return;
-                }
-
-                this.renderer.enabled = true;
-
-                this.CreateViewTexture();
-                this.ProtectFromNearPlaneClipping(camera);
-
-                Matrix4x4 matrix = this.destiny.transform.localToWorldMatrix * this.transform.worldToLocalMatrix * camera.transform.localToWorldMatrix;
-                this.portalCamera.transform.SetPositionAndRotation(matrix.GetColumn(3), matrix.rotation);
-
-                this.SetProjectionMatrix(camera);
-
-                UniversalRenderPipeline.RenderSingleCamera(context, this.portalCamera);
-            }
+            //RenderPipelineManager.beginCameraRendering -= this.BaseRender;
+            //Portal.OnPortalPreRender -= this.RecurseRender;
         }
 
         private void LateUpdate()
         {
+            if (!this.destiny)
+                return;
+
             PortalTraveller[] travellers = this.trackedTravellers.Keys.ToArray();
             foreach (PortalTraveller traveller in travellers)
-            {
-                if (!this.trackedTravellers.ContainsKey(traveller))
-                    continue;
-
-                Vector3 oldPos = this.trackedTravellers[traveller];
-                Vector3 newPos = traveller.transform.position;
-                Vector3 thisPos = this.transform.position;
-                float oldDot = Vector3.Dot(this.transform.forward, (oldPos - thisPos).normalized);
-                float newDot = Vector3.Dot(this.transform.forward, (newPos - thisPos).normalized);
-
-                if (oldDot < 0 && newDot >= 0)
-                {
-                    Matrix4x4 matrix = this.destiny.transform.localToWorldMatrix * this.transform.worldToLocalMatrix * traveller.transform.localToWorldMatrix;
-                    traveller.transform.SetPositionAndRotation(matrix.GetColumn(3), matrix.rotation);
-                    this.trackedTravellers.Remove(traveller);
-                    continue;
-                }
-
-                this.trackedTravellers[traveller] = traveller.transform.position;
-            }
+                this.HandleTraveller(traveller);
         }
 
         private void OnTriggerEnter(Collider other)
         {
             Rigidbody rb = other.attachedRigidbody;
             PortalTraveller traveller = rb ? rb.GetComponent<PortalTraveller>() : other.GetComponent<PortalTraveller>();
-            if (traveller)
-                this.trackedTravellers.Add(traveller, traveller.transform.position);
+            this.BeginTracking(traveller);
         }
 
         private void OnTriggerExit(Collider other)
         {
             Rigidbody rb = other.attachedRigidbody;
             PortalTraveller traveller = rb ? rb.GetComponent<PortalTraveller>() : other.GetComponent<PortalTraveller>();
-            if (traveller)
+            this.StopTracking(traveller);
+        }
+
+        #endregion
+
+        #region Teleporting
+        
+        private void BeginTracking(PortalTraveller traveller)
+        {
+            if (traveller && !this.trackedTravellers.ContainsKey(traveller))
+            {
+                this.trackedTravellers.Add(traveller, traveller.transform.position);
+                traveller.BeginTransition(this.transform, this.destiny.OutTransform);
+            }
+        }
+
+        private void HandleTraveller(PortalTraveller traveller)
+        {
+            if (!this.trackedTravellers.ContainsKey(traveller))
+                return;
+
+            Vector3 oldPos = this.trackedTravellers[traveller];
+            Vector3 newPos = traveller.transform.position;
+            Vector3 thisPos = this.transform.position;
+            float oldDot = Vector3.Dot(this.transform.forward, (oldPos - thisPos).normalized);
+            float newDot = Vector3.Dot(this.transform.forward, (newPos - thisPos).normalized);
+
+            bool passFront = oldDot >= 0 && newDot < 0;
+            if (passFront)
+            {
+                this.StopTracking(traveller);
+                Matrix4x4 outMatrix = this.destiny.OutTransform.localToWorldMatrix * this.transform.worldToLocalMatrix * traveller.transform.localToWorldMatrix;
+                traveller.transform.SetPositionAndRotation(outMatrix.GetColumn(3), outMatrix.rotation);
+                this.destiny.BeginTracking(traveller);
+
+                Debug.Log(this.name);
+                return;
+            }
+
+            this.trackedTravellers[traveller] = traveller.transform.position;
+        }
+
+        private void StopTracking(PortalTraveller traveller)
+        {
+            if (traveller && this.trackedTravellers.ContainsKey(traveller))
+            {
                 this.trackedTravellers.Remove(traveller);
-        }
-
-        private void CreateViewTexture()
-        {
-            if (renderTexture == null || renderTexture.width != Screen.width || renderTexture.height != Screen.height)
-            {
-                if (renderTexture != null)
-                    renderTexture.Release();
-
-                renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
-
-                // Render the view from the portal camera to the view texture
-                portalCamera.targetTexture = renderTexture;
-
-                // Display the view texture on the screen of the linked portal
-                this.renderer.material.SetTexture("_MainTex", renderTexture);
+                traveller.EndTransition();
             }
         }
 
-        private void ProtectFromNearPlaneClipping(Camera camera)
-        {
-            float halfHeight = camera.nearClipPlane * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
-            float halfWidth = halfHeight * camera.aspect;
-            float dstToNearPlaneCorner = new Vector3(halfWidth, halfHeight, camera.nearClipPlane).magnitude;
-
-            Transform screenT = this.renderer.transform;
-            float camFacing = 0.5f * Mathf.Sign(Vector3.Dot(this.transform.forward, this.transform.position - camera.transform.position));
-            screenT.localScale = new Vector3(screenT.localScale.x, screenT.localScale.y, dstToNearPlaneCorner);
-            screenT.localPosition = this.originalScreenPosition + (Vector3.forward * dstToNearPlaneCorner * camFacing);
-        }
-
-        // Use custom projection matrix to align portal camera's near clip plane with the surface of the portal
-        // Note that this affects precision of the depth buffer, which can cause issues with effects like screenspace AO
-        private void SetProjectionMatrix(Camera template)
-        {
-            // Learning resource:
-            // http://www.terathon.com/lengyel/Lengyel-Oblique.pdf
-            Transform clipPlane = this.destiny.transform;
-            int dot = System.Math.Sign(Vector3.Dot(clipPlane.forward, clipPlane.position - this.portalCamera.transform.position));
-
-            Vector3 camSpacePos = this.portalCamera.worldToCameraMatrix.MultiplyPoint(clipPlane.position);
-            Vector3 camSpaceNormal = this.portalCamera.worldToCameraMatrix.MultiplyVector(clipPlane.forward) * dot;
-            float camSpaceDst = -Vector3.Dot(camSpacePos, camSpaceNormal) + this.nearClipOffset;
-
-            // Don't use oblique clip plane if very close to portal as it seems this can cause some visual artifacts
-            if (Mathf.Abs(camSpaceDst) > this.nearClipLimit)
-            {
-                Vector4 clipPlaneCameraSpace = new Vector4(camSpaceNormal.x, camSpaceNormal.y, camSpaceNormal.z, camSpaceDst);
-
-                // Update projection based on new clip plane
-                // Calculate matrix with player cam so that player camera settings (fov, etc) are used
-                this.portalCamera.projectionMatrix = template.CalculateObliqueMatrix(clipPlaneCameraSpace);
-            }
-            else
-            {
-                this.portalCamera.projectionMatrix = template.projectionMatrix;
-            }
-        }
+        #endregion
     }
 }
