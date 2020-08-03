@@ -14,18 +14,19 @@ namespace GoThrough
         private List<Material> cloneMaterials;
         private new Rigidbody rigidbody;
 
-        private Transform source, destiny;
+        private Transform source, destination;
 
         public void Teleport(Portal source, Portal destination)
         {
-            Matrix4x4 outMatrix = destination.OutTransform.localToWorldMatrix * source.transform.worldToLocalMatrix * this.transform.localToWorldMatrix;
-            this.transform.SetPositionAndRotation(outMatrix.GetColumn(3), outMatrix.rotation);
+            Matrix4x4 localTransform = destination.OutTransform.localToWorldMatrix * source.transform.worldToLocalMatrix * this.transform.localToWorldMatrix;
+            this.transform.SetPositionAndRotation(localTransform.GetColumn(3), localTransform.rotation);
 
-            this.rigidbody.velocity = outMatrix.MultiplyVector(rigidbody.velocity);
-            this.rigidbody.angularVelocity = outMatrix.MultiplyVector(rigidbody.angularVelocity);
+            Matrix4x4 globalTransform = destination.OutTransform.localToWorldMatrix * source.transform.worldToLocalMatrix;
+            this.rigidbody.velocity = globalTransform.MultiplyVector(rigidbody.velocity);
+            this.rigidbody.angularVelocity = globalTransform.MultiplyVector(rigidbody.angularVelocity);
         }
 
-        public void BeginTransition(Transform source, Transform destiny)
+        public void BeginTransition(Transform source, Transform destination)
         {
             if (this.graphicsClone == null)
             {
@@ -37,7 +38,7 @@ namespace GoThrough
             }
 
             this.source = source;
-            this.destiny = destiny;
+            this.destination = destination;
 
             this.graphicsClone?.SetActive(true);
 
@@ -50,7 +51,7 @@ namespace GoThrough
 
         public void EndTransition()
         {
-            this.source = this.destiny = null;
+            this.source = this.destination = null;
 
             this.graphicsClone.SetActive(false);
 
@@ -68,9 +69,9 @@ namespace GoThrough
 
         private void LateUpdate()
         {
-            if (this.source && this.destiny)
+            if (this.source && this.destination)
             {
-                Matrix4x4 cloneTransform = this.destiny.localToWorldMatrix * this.source.worldToLocalMatrix * this.graphics.transform.localToWorldMatrix;
+                Matrix4x4 cloneTransform = this.destination.localToWorldMatrix * this.source.worldToLocalMatrix * this.graphics.transform.localToWorldMatrix;
 
                 foreach (Material mat in this.originalMaterials)
                 {
@@ -80,8 +81,8 @@ namespace GoThrough
 
                 foreach (Material mat in this.cloneMaterials)
                 {
-                    mat.SetVector("_ClipPlaneCenter", this.destiny.position);
-                    mat.SetVector("_ClipPlaneNormal", this.destiny.forward);
+                    mat.SetVector("_ClipPlaneCenter", this.destination.position);
+                    mat.SetVector("_ClipPlaneNormal", this.destination.forward);
                 }
 
                 this.graphicsClone.transform.SetPositionAndRotation(cloneTransform.GetColumn(3), cloneTransform.rotation);

@@ -30,7 +30,7 @@ namespace GoThrough
                 this.portalCamera = portalCamera;
                 this.depth = currentDepth;
                 
-                Matrix4x4 newViewPose = portal.destiny.OutTransform.localToWorldMatrix * portal.transform.worldToLocalMatrix * viewPose;
+                Matrix4x4 newViewPose = portal.destination.OutTransform.localToWorldMatrix * portal.transform.worldToLocalMatrix * viewPose;
                 this.viewPose = newViewPose;
 
                 if (currentDepth > PortalManager.Instance.recursionMaxDepth)
@@ -38,12 +38,12 @@ namespace GoThrough
 
                 foreach (Portal p in activePortals)
                 {
-                    if (p == portal.destiny)
+                    if (p == portal.destination)
                         continue;
 
                     portalCamera.transform.SetPositionAndRotation(newViewPose.GetColumn(3), newViewPose.rotation);
 
-                    if (p.IsVisibleWithin(portalCamera, portal.destiny))
+                    if (p.IsVisibleWithin(portalCamera, portal.destination))
                         this.dependencies.Add(new Node(p, portalCamera, activePortals, newViewPose, currentDepth + 1));
                 }
             }
@@ -68,7 +68,7 @@ namespace GoThrough
 
                 this.portalCamera.transform.SetPositionAndRotation(this.viewPose.GetColumn(3), this.viewPose.rotation);
                 Matrix4x4 cameraTransform = Matrix4x4.Transpose(Matrix4x4.Inverse(portalCamera.worldToCameraMatrix));
-                Vector4 clippingPlane = this.portal.destiny.GetClippingPlane();
+                Vector4 clippingPlane = this.portal.destination.GetClippingPlane();
                 this.portalCamera.projectionMatrix = baseCamera.CalculateObliqueMatrix(cameraTransform * clippingPlane);
 
                 if (this.depth > PortalManager.Instance.recursionMaxDepth)
@@ -80,9 +80,9 @@ namespace GoThrough
                 }
                 else
                 {
-                    this.portal.destiny.DisableScreen();
+                    this.portal.destination.DisableScreen();
                     UniversalRenderPipeline.RenderSingleCamera(ctx, this.portalCamera);
-                    this.portal.destiny.EnableScreen();
+                    this.portal.destination.EnableScreen();
                 }
 
 

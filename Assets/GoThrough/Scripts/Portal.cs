@@ -69,7 +69,7 @@ namespace GoThrough
 
         #region Parameters
 
-        public Portal destiny;
+        public Portal destination;
 
         #endregion
 
@@ -111,7 +111,7 @@ namespace GoThrough
 
         private void LateUpdate()
         {
-            if (!this.destiny)
+            if (!this.destination)
                 return;
 
             PortalTraveller[] travellers = this.trackedTravellers.Keys.ToArray();
@@ -142,7 +142,7 @@ namespace GoThrough
             if (traveller && !this.trackedTravellers.ContainsKey(traveller))
             {
                 this.trackedTravellers.Add(traveller, traveller.transform.position);
-                traveller.BeginTransition(this.transform, this.destiny.OutTransform);
+                traveller.BeginTransition(this.transform, this.destination.OutTransform);
             }
         }
 
@@ -158,8 +158,8 @@ namespace GoThrough
             if (passFront)
             {
                 this.StopTracking(traveller);
-                traveller.Teleport(this, this.destiny);
-                this.destiny.BeginTracking(traveller);
+                traveller.Teleport(this, this.destination);
+                this.destination.BeginTracking(traveller);
                 return;
             }
 
