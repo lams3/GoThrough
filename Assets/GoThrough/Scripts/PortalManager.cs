@@ -42,14 +42,14 @@ namespace GoThrough
 
         private void RenderPipelineManager_beginCameraRendering(ScriptableRenderContext ctx, Camera cam)
         {
-            if (cam.cameraType != CameraType.Game)
-                return;
+            if (cam.cameraType == CameraType.Game || cam.cameraType == CameraType.SceneView)
+            {
+                foreach (var portal in this.portals)
+                    portal.SetupScreen(cam);
 
-            foreach(var portal in this.portals)
-                portal.SetupScreen(cam);
-
-            var graph = new VisibilityGraph(cam, this.portalCamera, this.portals);
-            graph.Render(ctx);
+                var graph = new VisibilityGraph(cam, this.portalCamera, this.portals);
+                graph.Render(ctx);
+            }
         }
 
         private void RenderPipelineManager_endCameraRendering(ScriptableRenderContext ctx, Camera cam)
