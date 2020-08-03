@@ -12,7 +12,7 @@ namespace GoThrough.Utility
             public bool used;
         }
 
-        public int MaxSize => PortalConfig.Instance.maxRenderTextureAllocations;
+        public int MaxSize => PortalManager.Instance.maxRenderTextureAllocations;
 
         private List<Item> pool = new List<Item>();
 

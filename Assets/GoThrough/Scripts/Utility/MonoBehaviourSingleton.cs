@@ -42,9 +42,6 @@ namespace GoThrough.Utility
                             var singletonObject = new GameObject();
                             m_Instance = singletonObject.AddComponent<T>();
                             singletonObject.name = typeof(T).ToString() + " (Singleton)";
-
-                            // Make instance persistent.
-                            DontDestroyOnLoad(singletonObject);
                         }
                     }
 

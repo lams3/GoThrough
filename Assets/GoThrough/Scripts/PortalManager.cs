@@ -7,8 +7,10 @@ namespace GoThrough
 {
     public class PortalManager : MonoBehaviourSingleton<PortalManager>
     {
-        private HashSet<Portal> portals = new HashSet<Portal>();
+        public int recursionMaxDepth = 5;
+        public int maxRenderTextureAllocations = 100;
 
+        private HashSet<Portal> portals = new HashSet<Portal>();
         private Camera portalCamera;
 
         private void Awake()

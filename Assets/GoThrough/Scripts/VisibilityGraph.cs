@@ -33,7 +33,7 @@ namespace GoThrough
                 Matrix4x4 newViewPose = portal.destiny.OutTransform.localToWorldMatrix * portal.transform.worldToLocalMatrix * viewPose;
                 this.viewPose = newViewPose;
 
-                if (currentDepth > PortalConfig.Instance.recursionMaxDepth)
+                if (currentDepth > PortalManager.Instance.recursionMaxDepth)
                     return;
 
                 foreach (Portal p in activePortals)
@@ -71,7 +71,7 @@ namespace GoThrough
                 Vector4 clippingPlane = this.portal.destiny.GetClippingPlane();
                 this.portalCamera.projectionMatrix = baseCamera.CalculateObliqueMatrix(cameraTransform * clippingPlane);
 
-                if (this.depth > PortalConfig.Instance.recursionMaxDepth)
+                if (this.depth > PortalManager.Instance.recursionMaxDepth)
                 {
                     int actualCullingMask = this.portalCamera.cullingMask;
                     this.portalCamera.cullingMask = 0;
