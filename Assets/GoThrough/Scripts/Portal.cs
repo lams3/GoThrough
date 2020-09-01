@@ -44,7 +44,7 @@ namespace GoThrough
             float halfHeight = camera.nearClipPlane * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
             float halfWidth = halfHeight * camera.aspect;
             float dstToNearPlaneCorner = new Vector3(halfWidth, halfHeight, camera.nearClipPlane).magnitude;
-            float screenThickness = dstToNearPlaneCorner;
+            float screenThickness = 2.0f * dstToNearPlaneCorner;
 
             Vector3 offset = -Vector3.forward * screenThickness * 0.5f;
 
@@ -74,10 +74,6 @@ namespace GoThrough
         #endregion
 
         #region PrivateMembers
-
-        private Camera portalCamera;
-        private RenderTexture frontBuffer, backBuffer;
-
         private MeshRenderer screen;
         private MeshFilter screenMeshFilter;
         private Vector3 originalScreenPosition;
@@ -92,7 +88,6 @@ namespace GoThrough
         private void Awake()
         {
             this.outTransform = this.transform.Find("OutTransform");
-            this.portalCamera = this.transform.Find("Camera").GetComponent<Camera>();
             this.screen = this.transform.Find("Screen").GetComponent<MeshRenderer>();
 
             this.screenMeshFilter = this.screen.GetComponent<MeshFilter>();
@@ -155,7 +150,7 @@ namespace GoThrough
             Vector3 newPos = this.transform.InverseTransformPoint(traveller.transform.position);
 
             bool passFront = oldPos.z >= 0 && newPos.z < 0;
-            if (passFront)
+            if (passFront && !traveller.TeleportedThisFrame)
             {
                 this.StopTracking(traveller);
                 traveller.Teleport(this, this.destination);

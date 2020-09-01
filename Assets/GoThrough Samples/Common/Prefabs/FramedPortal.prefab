@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8471577184001404883}
   m_Layer: 0
-  m_Name: Portal
+  m_Name: FramedPortal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -351,6 +351,21 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 8471577184001404883}
     m_Modifications:
+    - target: {fileID: 2122108119046562008, guid: 4783fd255cab6934688a0f10bbb4c527,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.99
+      objectReference: {fileID: 0}
+    - target: {fileID: 2122108119046562008, guid: 4783fd255cab6934688a0f10bbb4c527,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.97
+      objectReference: {fileID: 0}
+    - target: {fileID: 2122108119046562008, guid: 4783fd255cab6934688a0f10bbb4c527,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.51
+      objectReference: {fileID: 0}
     - target: {fileID: 9211354034918405878, guid: 4783fd255cab6934688a0f10bbb4c527,
         type: 3}
       propertyPath: m_Name

@@ -1,5 +1,6 @@
 ﻿using GoThrough.Utility;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -65,18 +66,23 @@ namespace GoThrough
 
                 temporaryPoolItem = RenderTexturePool.Instance.GetRenderTexture();
                 this.portalCamera.targetTexture = temporaryPoolItem.renderTexture;
-
+                
                 this.portalCamera.transform.SetPositionAndRotation(this.viewPose.GetColumn(3), this.viewPose.rotation);
-                Matrix4x4 cameraTransform = Matrix4x4.Transpose(Matrix4x4.Inverse(portalCamera.worldToCameraMatrix));
+                
+                Matrix4x4 cameraTransform = Matrix4x4.Transpose(Matrix4x4.Inverse(this.portalCamera.worldToCameraMatrix));
                 Vector4 clippingPlane = this.portal.destination.GetClippingPlane();
-                this.portalCamera.projectionMatrix = baseCamera.CalculateObliqueMatrix(cameraTransform * clippingPlane);
+                if (PortalManager.Instance.useObliqueFrustum)
+                    this.portalCamera.projectionMatrix = baseCamera.CalculateObliqueMatrix(cameraTransform * clippingPlane);
 
                 if (this.depth > PortalManager.Instance.recursionMaxDepth)
                 {
-                    int actualCullingMask = this.portalCamera.cullingMask;
-                    this.portalCamera.cullingMask = 0;
-                    UniversalRenderPipeline.RenderSingleCamera(ctx, this.portalCamera);
-                    this.portalCamera.cullingMask = actualCullingMask;
+                    //int actualCullingMask = this.portalCamera.cullingMask;
+                    //this.portalCamera.cullingMask = 0;
+                    //UniversalRenderPipeline.RenderSingleCamera(ctx, this.portalCamera);
+                    //this.portalCamera.cullingMask = actualCullingMask;
+
+                    RenderTexture.active = temporaryPoolItem.renderTexture;
+                    GL.ClearWithSkybox(true, this.portalCamera);
                 }
                 else
                 {
@@ -116,6 +122,14 @@ namespace GoThrough
 
                 return stringBuilder.ToString();
             }
+
+            public int GetChildrenCount()
+            {
+                if (this.depth == PortalManager.Instance.recursionMaxDepth)
+                    return 0;
+
+                return this.dependencies.Sum(el => 1 + el.GetChildrenCount());
+            }
         }
 
         private Camera baseCamera;
@@ -140,6 +154,11 @@ namespace GoThrough
         {
             foreach (var node in this.dependencies)
                 node.Render(ctx, baseCamera, out _, out _);
+        }
+
+        public int GetNodeCount()
+        {
+            return 1 + this.dependencies.Sum(el => 1 + el.GetChildrenCount());
         }
 
         public override string ToString()

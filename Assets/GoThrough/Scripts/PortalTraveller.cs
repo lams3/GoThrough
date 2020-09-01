@@ -1,4 +1,5 @@
 ﻿using GoThrough.Utility;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,14 +17,26 @@ namespace GoThrough
 
         private Transform source, destination;
 
+        public event Action<Portal, Portal> OnTeleport = (source, destiny) => { };
+
+        private bool teleportedThisFrame = false;
+
+        public bool TeleportedThisFrame => this.teleportedThisFrame;
+
         public void Teleport(Portal source, Portal destination)
         {
             Matrix4x4 localTransform = destination.OutTransform.localToWorldMatrix * source.transform.worldToLocalMatrix * this.transform.localToWorldMatrix;
             this.transform.SetPositionAndRotation(localTransform.GetColumn(3), localTransform.rotation);
+            this.rigidbody.position = localTransform.GetColumn(3);
+            this.rigidbody.rotation = localTransform.rotation;
 
             Matrix4x4 globalTransform = destination.OutTransform.localToWorldMatrix * source.transform.worldToLocalMatrix;
             this.rigidbody.velocity = globalTransform.MultiplyVector(rigidbody.velocity);
             this.rigidbody.angularVelocity = globalTransform.MultiplyVector(rigidbody.angularVelocity);
+
+            this.OnTeleport.Invoke(source, destination);
+
+            this.teleportedThisFrame = true;
         }
 
         public void BeginTransition(Transform source, Transform destination)
@@ -87,6 +100,8 @@ namespace GoThrough
 
                 this.graphicsClone.transform.SetPositionAndRotation(cloneTransform.GetColumn(3), cloneTransform.rotation);
             }
+
+            this.teleportedThisFrame = false;
         }
     }
 }

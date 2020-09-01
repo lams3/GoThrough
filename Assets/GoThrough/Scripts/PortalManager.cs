@@ -9,6 +9,9 @@ namespace GoThrough
     {
         public int recursionMaxDepth = 5;
         public int maxRenderTextureAllocations = 100;
+        public bool useObliqueFrustum = true;
+
+        public int nodeCount = 0;
 
         private HashSet<Portal> portals = new HashSet<Portal>();
         private Camera portalCamera;
@@ -48,6 +51,9 @@ namespace GoThrough
                     portal.SetupScreen(cam);
 
                 var graph = new VisibilityGraph(cam, this.portalCamera, this.portals);
+
+                this.nodeCount = graph.GetNodeCount();
+
                 graph.Render(ctx);
             }
         }
