@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6792494459798862241}
   - component: {fileID: 3858191203595515903}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Feet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -57,9 +57,9 @@ GameObject:
   - component: {fileID: 5412490325005954192}
   - component: {fileID: 5412490325005954196}
   - component: {fileID: 5412490325005954198}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -136,8 +136,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b58b25bfb015814fbfca3546e6a25a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lookSensitivity: 150
-  moveSpeed: 4
+  speed: 10
+  gravity: 10
+  maxVelocityChange: 10
+  mouseSensitivity: 100
   camera: {fileID: 5412490325588591566}
 --- !u!1 &5412490325588591567
 GameObject:
@@ -151,7 +153,7 @@ GameObject:
   - component: {fileID: 5412490325588591566}
   - component: {fileID: 5412490325588591564}
   - component: {fileID: 5412490325588591565}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -265,7 +267,7 @@ GameObject:
   - component: {fileID: 5412490326141702321}
   - component: {fileID: 5412490326141702327}
   - component: {fileID: 5412490326141702320}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Gfx
   m_TagString: Untagged
   m_Icon: {fileID: 0}

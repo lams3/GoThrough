@@ -20,7 +20,6 @@ namespace GoThrough.Samples
 			this.rigidbody = this.GetComponent<Rigidbody>();
 			this.rigidbody.freezeRotation = true;
 			this.rigidbody.useGravity = false;
-			this.rigidbody.isKinematic = true;
 
 			Cursor.lockState = CursorLockMode.Locked;
 		}
@@ -35,43 +34,45 @@ namespace GoThrough.Samples
 
 			this.camera.transform.localRotation = Quaternion.Euler(this.xRotation, 0.0f, 0.0f);
 			this.transform.Rotate(Vector3.up * mouseX, Space.Self);
+			this.rigidbody.rotation = this.transform.rotation;
 
-			Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-			targetVelocity = this.transform.TransformDirection(targetVelocity);
-			targetVelocity *= this.speed;
+			//Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+			//targetVelocity = this.transform.TransformDirection(targetVelocity);
+			//targetVelocity *= this.speed;
 
-			this.transform.Translate(targetVelocity * Time.deltaTime, Space.World);
+			//this.transform.Translate(targetVelocity * Time.deltaTime, Space.World);
 		}
 
-		//void FixedUpdate()
-		//{
-		//	if (this.grounded)
-		//	{
-		//		// Calculate how fast we should be moving
-		//		Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-		//		targetVelocity = this.transform.TransformDirection(targetVelocity);
-		//		targetVelocity *= this.speed;
+		void FixedUpdate()
+		{
+			if (this.grounded)
+			{
+				// Calculate how fast we should be moving
+				Vector3 targetVelocity = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+				targetVelocity = this.transform.TransformDirection(targetVelocity);
+				targetVelocity *= this.speed;
 
 
-		//		// Apply a force that attempts to reach our target velocity
-		//		Vector3 velocity = rigidbody.velocity;
-		//		Vector3 velocityChange = this.transform.TransformVector(targetVelocity - velocity);
-		//		//Debug.Log(velocityChange);
-		//		velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
-		//		velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
-		//		velocityChange.y = 0;
-		//		this.rigidbody.AddForce(this.transform.InverseTransformVector(velocityChange), ForceMode.VelocityChange);
-		//	}
+				// Apply a force that attempts to reach our target velocity
+				Vector3 velocity = rigidbody.velocity;
+				Vector3 velocityChange = this.transform.TransformVector(targetVelocity - velocity);
+				//Debug.Log(velocityChange);
+				velocityChange.x = Mathf.Clamp(velocityChange.x, -maxVelocityChange, maxVelocityChange);
+				velocityChange.z = Mathf.Clamp(velocityChange.z, -maxVelocityChange, maxVelocityChange);
+				velocityChange.y = 0;
 
-		//	// We apply gravity manually for more tuning control
-		//	this.rigidbody.AddRelativeForce(new Vector3(0, -gravity * rigidbody.mass, 0));
+				this.rigidbody.AddForce(this.transform.InverseTransformVector(velocityChange), ForceMode.VelocityChange);
+			}
 
-		//	this.grounded = false;
-		//}
+			// We apply gravity manually for more tuning control
+			this.rigidbody.AddRelativeForce(new Vector3(0, -gravity * rigidbody.mass, 0));
 
-		//void OnTriggerStay()
-		//{
-		//	this.grounded = true;
-		//}
+			this.grounded = false;
+		}
+
+		void OnTriggerStay()
+		{
+			this.grounded = true;
+		}
 	}
 }

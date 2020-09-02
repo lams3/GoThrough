@@ -1,4 +1,5 @@
 ﻿using GoThrough.Utility;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -104,14 +105,10 @@ namespace GoThrough
             PortalManager.Instance?.Unsubscribe(this);
         }
 
-        private void LateUpdate()
+        private void FixedUpdate()
         {
-            if (!this.destination)
-                return;
-
-            PortalTraveller[] travellers = this.trackedTravellers.Keys.ToArray();
-            foreach (PortalTraveller traveller in travellers)
-                this.HandleTraveller(traveller);
+            if (this.destination)
+                this.StartCoroutine(this.HandleAllTravellers());
         }
 
         private void OnTriggerEnter(Collider other)
@@ -139,6 +136,15 @@ namespace GoThrough
                 this.trackedTravellers.Add(traveller, traveller.transform.position);
                 traveller.BeginTransition(this.transform, this.destination.OutTransform);
             }
+        }
+
+        private IEnumerator HandleAllTravellers()
+        {
+            yield return new WaitForFixedUpdate();
+
+            PortalTraveller[] travellers = this.trackedTravellers.Keys.ToArray();
+            foreach (PortalTraveller traveller in travellers)
+                this.HandleTraveller(traveller);
         }
 
         private void HandleTraveller(PortalTraveller traveller)
