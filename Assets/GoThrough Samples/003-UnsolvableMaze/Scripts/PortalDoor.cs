@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace GoThrough.Samples
+namespace GoThrough.Samples.UnsolvableMaze
 {
     [RequireComponent(typeof(Portal))]
     public class PortalDoor : MonoBehaviour

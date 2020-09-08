@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace GoThrough.Samples
+namespace GoThrough.Samples.UnsolvableMaze
 {
 
     public class MazeBuilder : MonoBehaviour
@@ -16,17 +16,24 @@ namespace GoThrough.Samples
 
         private void Awake()
         {
-            this.player.OnTeleport += this.OnPlayerTeleport;
+            this.SetupCells();
+            this.SetupPlayer();
+            this.RebuildMaze();
+        }
 
+        private void SetupCells()
+        {
             this.cells = FindObjectsOfType<Cell>();
             this.portalToCell = new Dictionary<Portal, Cell>();
             foreach (Cell cell in this.cells)
                 foreach (Portal p in cell.portals)
                     this.portalToCell[p] = cell;
+        }
 
-            this.Rebuild();
-
+        private void SetupPlayer()
+        {
             this.player.transform.position = this.cells[0].transform.position;
+            this.player.OnTeleport += this.OnPlayerTeleport;
         }
 
         private void OnPlayerTeleport(Portal source, Portal destination)
@@ -36,10 +43,10 @@ namespace GoThrough.Samples
             
             destination.destination = source;
 
-            this.Rebuild(new Cell[] { sourceCell, destinationCell });
+            this.RebuildMaze(new Cell[] { sourceCell, destinationCell });
         }
 
-        private void Rebuild(IEnumerable<Cell> ignoredCells = null)
+        private void RebuildMaze(IEnumerable<Cell> ignoredCells = null)
         {
             Predicate<Cell> isElegible = (Cell c) => ignoredCells == null || !ignoredCells.Contains(c);
 
@@ -56,33 +63,23 @@ namespace GoThrough.Samples
         private void RebuildCell(Cell cell)
         {
             HashSet<Cell> cellsToAvoid = new HashSet<Cell>();
-            HashSet<Cell.CellType> cellTypesToAvoid = new HashSet<Cell.CellType>();
 
             cellsToAvoid.Add(cell);
             var cellsLeadingToSelf = this.cells.SelectMany(c => c.portals).Where(p => cell.portals.Contains(p.destination)).Select(p => this.portalToCell[p]);
             foreach (Cell c in cellsLeadingToSelf)
                 cellsToAvoid.Add(c);
 
-            //if (cell.cellType == Cell.CellType.Room)
-            //    cellTypesToAvoid.Add(Cell.CellType.Room);
-
 
             foreach (Portal p in cell.portals)
             {
-                Portal[] elegiblePortals = this.cells.Where(c => !cellsToAvoid.Contains(c) && !cellTypesToAvoid.Contains(c.cellType)).SelectMany(c => c.portals).ToArray();
+                List<Portal> elegiblePortals = this.cells.Except(cellsToAvoid).SelectMany(c => c.portals).ToList();
 
-                if (elegiblePortals.Length == 0)
-                {
-                    p.destination = this.cells.Where(c => c != cell).First().portals[0];
-                    continue;
-                }
+                if (elegiblePortals.Count == 0)
+                    elegiblePortals.Add(this.cells.Where(c => c != cell).First().portals[0]);
 
-                p.destination = elegiblePortals[Random.Range(0, elegiblePortals.Length)];
-                var destinationCell = this.portalToCell[p.destination];
+                p.destination = elegiblePortals[Random.Range(0, elegiblePortals.Count)];
 
-                cellsToAvoid.Add(destinationCell);
-                //if (destinationCell.cellType == Cell.CellType.Room)
-                //    cellTypesToAvoid.Add(destinationCell.cellType);
+                cellsToAvoid.Add(this.portalToCell[p.destination]);
             }
         }
     }
