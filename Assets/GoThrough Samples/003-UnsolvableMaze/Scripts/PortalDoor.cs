@@ -11,7 +11,7 @@ namespace GoThrough.Samples.UnsolvableMaze
         private Portal portal;
         private bool shouldOpen;
 
-        private GameObject DestinationDoor => this.portal.destination.GetComponent<PortalDoor>().door;
+        private GameObject DestinationDoor => this.portal.Destination.GetComponent<PortalDoor>().door;
 
         private void Awake()
         {

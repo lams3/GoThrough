@@ -35,6 +35,8 @@ namespace GoThrough
 
         public void Subscribe(Portal portal)
         {
+            if (!portal.Destination)
+                throw new System.NullReferenceException($"{portal.name} has no destination. Please, set a destination for it.");
             this.portals.Add(portal);
         }
 

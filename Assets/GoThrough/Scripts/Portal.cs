@@ -70,7 +70,19 @@ namespace GoThrough
 
         #region Parameters
 
-        public Portal destination;
+        [SerializeField]
+        private Portal destination;
+
+        public Portal Destination
+        {
+            get => this.destination;
+            set
+            {
+                this.destination = value;
+                if (this.isActiveAndEnabled)
+                    PortalManager.Instance?.Subscribe(this);
+            }
+        }
 
         #endregion
 
@@ -107,7 +119,7 @@ namespace GoThrough
 
         private void FixedUpdate()
         {
-            if (this.destination)
+            if (this.Destination)
                 this.StartCoroutine(this.HandleAllTravellers());
         }
 
@@ -134,7 +146,7 @@ namespace GoThrough
             if (traveller && !this.trackedTravellers.ContainsKey(traveller))
             {
                 this.trackedTravellers.Add(traveller, traveller.transform.position);
-                traveller.BeginTransition(this.transform, this.destination.OutTransform);
+                traveller.BeginTransition(this.transform, this.Destination?.OutTransform);
             }
         }
 
@@ -159,8 +171,8 @@ namespace GoThrough
             if (passFront && !traveller.TeleportedThisFrame)
             {
                 this.StopTracking(traveller);
-                traveller.Teleport(this, this.destination);
-                this.destination.BeginTracking(traveller);
+                traveller.Teleport(this, this.Destination);
+                this.Destination.BeginTracking(traveller);
                 return;
             }
 

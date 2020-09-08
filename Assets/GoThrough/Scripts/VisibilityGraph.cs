@@ -31,7 +31,7 @@ namespace GoThrough
                 this.portalCamera = portalCamera;
                 this.depth = currentDepth;
                 
-                Matrix4x4 newViewPose = portal.destination.OutTransform.localToWorldMatrix * portal.transform.worldToLocalMatrix * viewPose;
+                Matrix4x4 newViewPose = portal.Destination.OutTransform.localToWorldMatrix * portal.transform.worldToLocalMatrix * viewPose;
                 this.viewPose = newViewPose;
 
                 if (currentDepth > PortalManager.Instance.recursionMaxDepth)
@@ -39,12 +39,12 @@ namespace GoThrough
 
                 foreach (Portal p in activePortals)
                 {
-                    if (p == portal.destination)
+                    if (p == portal.Destination)
                         continue;
 
                     portalCamera.transform.SetPositionAndRotation(newViewPose.GetColumn(3), newViewPose.rotation);
 
-                    if (p.IsVisibleWithin(portalCamera, portal.destination))
+                    if (p.IsVisibleWithin(portalCamera, portal.Destination))
                         this.dependencies.Add(new Node(p, portalCamera, activePortals, newViewPose, currentDepth + 1));
                 }
             }
@@ -70,25 +70,20 @@ namespace GoThrough
                 this.portalCamera.transform.SetPositionAndRotation(this.viewPose.GetColumn(3), this.viewPose.rotation);
                 
                 Matrix4x4 cameraTransform = Matrix4x4.Transpose(Matrix4x4.Inverse(this.portalCamera.worldToCameraMatrix));
-                Vector4 clippingPlane = this.portal.destination.GetClippingPlane();
+                Vector4 clippingPlane = this.portal.Destination.GetClippingPlane();
                 if (PortalManager.Instance.useObliqueFrustum)
                     this.portalCamera.projectionMatrix = baseCamera.CalculateObliqueMatrix(cameraTransform * clippingPlane);
 
                 if (this.depth > PortalManager.Instance.recursionMaxDepth)
                 {
-                    //int actualCullingMask = this.portalCamera.cullingMask;
-                    //this.portalCamera.cullingMask = 0;
-                    //UniversalRenderPipeline.RenderSingleCamera(ctx, this.portalCamera);
-                    //this.portalCamera.cullingMask = actualCullingMask;
-
                     RenderTexture.active = temporaryPoolItem.renderTexture;
                     GL.ClearWithSkybox(true, this.portalCamera);
                 }
                 else
                 {
-                    this.portal.destination.DisableScreen();
+                    this.portal.Destination.DisableScreen();
                     UniversalRenderPipeline.RenderSingleCamera(ctx, this.portalCamera);
-                    this.portal.destination.EnableScreen();
+                    this.portal.Destination.EnableScreen();
                 }
 
 

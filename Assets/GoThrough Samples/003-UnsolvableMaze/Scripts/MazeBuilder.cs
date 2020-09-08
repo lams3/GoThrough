@@ -41,7 +41,7 @@ namespace GoThrough.Samples.UnsolvableMaze
             Cell sourceCell = this.portalToCell[source];
             Cell destinationCell = this.portalToCell[destination];
             
-            destination.destination = source;
+            destination.Destination = source;
 
             this.RebuildMaze(new Cell[] { sourceCell, destinationCell });
         }
@@ -53,7 +53,7 @@ namespace GoThrough.Samples.UnsolvableMaze
             foreach (Cell cell in this.cells)
                 if (isElegible(cell))
                     foreach (Portal portal in cell.portals)
-                        portal.destination = null;
+                        portal.Destination = null;
 
             foreach (Cell cell in this.cells)
                 if (isElegible(cell))
@@ -65,7 +65,7 @@ namespace GoThrough.Samples.UnsolvableMaze
             HashSet<Cell> cellsToAvoid = new HashSet<Cell>();
 
             cellsToAvoid.Add(cell);
-            var cellsLeadingToSelf = this.cells.SelectMany(c => c.portals).Where(p => cell.portals.Contains(p.destination)).Select(p => this.portalToCell[p]);
+            var cellsLeadingToSelf = this.cells.SelectMany(c => c.portals).Where(p => cell.portals.Contains(p.Destination)).Select(p => this.portalToCell[p]);
             foreach (Cell c in cellsLeadingToSelf)
                 cellsToAvoid.Add(c);
 
@@ -77,9 +77,9 @@ namespace GoThrough.Samples.UnsolvableMaze
                 if (elegiblePortals.Count == 0)
                     elegiblePortals.Add(this.cells.Where(c => c != cell).First().portals[0]);
 
-                p.destination = elegiblePortals[Random.Range(0, elegiblePortals.Count)];
+                p.Destination = elegiblePortals[Random.Range(0, elegiblePortals.Count)];
 
-                cellsToAvoid.Add(this.portalToCell[p.destination]);
+                cellsToAvoid.Add(this.portalToCell[p.Destination]);
             }
         }
     }
