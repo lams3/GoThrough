@@ -9,6 +9,16 @@ namespace GoThrough
 {
     public class Portal : MonoBehaviour
     {
+        #region Callbacks
+        public delegate void OnTravellerEnterZoneDelegate(Portal portal, PortalTraveller traveller);
+        public delegate void OnTravellerLeaveZoneDelegate(Portal portal, PortalTraveller traveller);
+        public delegate void OnTeleportTravellerDelegate(Portal source, Portal destination, PortalTraveller traveller);
+
+        public event OnTravellerEnterZoneDelegate OnTravellerEnterZone = (p, t) => { };
+        public event OnTravellerLeaveZoneDelegate OnTravellerLeaveZone = (p, t) => { };
+        public event OnTeleportTravellerDelegate OnTeleportTraveller = (s, d, t) => { };
+        #endregion
+
         #region NewCode
 
         public Transform OutTransform => this.outTransform;
@@ -147,6 +157,9 @@ namespace GoThrough
             {
                 this.trackedTravellers.Add(traveller, traveller.transform.position);
                 traveller.BeginTransition(this.transform, this.Destination?.OutTransform);
+
+                this.OnTravellerEnterZone.Invoke(this, traveller);
+                traveller.InvokeOnEnterPortalZone(this);
             }
         }
 
@@ -171,8 +184,14 @@ namespace GoThrough
             if (passFront && !traveller.TeleportedThisFrame)
             {
                 this.StopTracking(traveller);
+
                 traveller.Teleport(this, this.Destination);
+                
+                this.OnTeleportTraveller.Invoke(this, this.Destination, traveller);
+                traveller.InvokeOnTeleport(this, this.Destination);
+                
                 this.Destination.BeginTracking(traveller);
+                
                 return;
             }
 
@@ -185,6 +204,9 @@ namespace GoThrough
             {
                 this.trackedTravellers.Remove(traveller);
                 traveller.EndTransition();
+
+                this.OnTravellerLeaveZone.Invoke(this, traveller);
+                traveller.InvokeOnLeavePortalZone(this);
             }
         }
 

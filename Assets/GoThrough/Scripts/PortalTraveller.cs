@@ -1,5 +1,4 @@
 ﻿using GoThrough.Utility;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +6,31 @@ namespace GoThrough
 {
     public class PortalTraveller : MonoBehaviour
     {
+        #region Callbacks
+        public delegate void OnEnterPortalZoneDelegate(PortalTraveller traveller, Portal portal);
+        public delegate void OnLeavePortalZoneDelegate(PortalTraveller traveller, Portal portal);
+        public delegate void OnTeleportDelegate(PortalTraveller traveller, Portal source, Portal destination);
+
+        public event OnEnterPortalZoneDelegate OnEnterPortalZone = (t, p) => { };
+        public event OnLeavePortalZoneDelegate OnLeavePortalZone = (t, p) => { };
+        public event OnTeleportDelegate OnTeleport = (t, s, d) => { };
+
+        public void InvokeOnEnterPortalZone(Portal portal)
+        {
+            this.OnEnterPortalZone.Invoke(this, portal);
+        }
+
+        public void InvokeOnLeavePortalZone(Portal portal)
+        {
+            this.OnLeavePortalZone.Invoke(this, portal);
+        }
+
+        public void InvokeOnTeleport(Portal source, Portal destination)
+        {
+            this.OnTeleport.Invoke(this, source, destination);
+        }
+        #endregion
+
         [SerializeField]
         private GameObject graphics;
 
@@ -16,8 +40,6 @@ namespace GoThrough
         private new Rigidbody rigidbody;
 
         private Transform source, destination;
-
-        public event Action<Portal, Portal> OnTeleport = (source, destiny) => { };
 
         private bool teleportedThisFrame = false;
 
@@ -33,8 +55,6 @@ namespace GoThrough
             Matrix4x4 globalTransform = destination.OutTransform.localToWorldMatrix * source.transform.worldToLocalMatrix;
             this.rigidbody.velocity = globalTransform.MultiplyVector(rigidbody.velocity);
             this.rigidbody.angularVelocity = globalTransform.MultiplyVector(rigidbody.angularVelocity);
-
-            this.OnTeleport.Invoke(source, destination);
 
             this.teleportedThisFrame = true;
         }

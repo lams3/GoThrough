@@ -36,7 +36,7 @@ namespace GoThrough.Samples.UnsolvableMaze
             this.player.OnTeleport += this.OnPlayerTeleport;
         }
 
-        private void OnPlayerTeleport(Portal source, Portal destination)
+        private void OnPlayerTeleport(PortalTraveller player, Portal source, Portal destination)
         {
             Cell sourceCell = this.portalToCell[source];
             Cell destinationCell = this.portalToCell[destination];
