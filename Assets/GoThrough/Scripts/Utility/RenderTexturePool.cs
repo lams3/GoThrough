@@ -4,14 +4,16 @@ using UnityEngine;
 
 namespace GoThrough.Utility
 {
+    /// <summary>
+    /// A dynamic resolution RenderTexturePool.
+    /// </summary>
     public class RenderTexturePool : ScriptableObject
     {
-        public class Item
-        {
-            public RenderTexture renderTexture;
-            public bool used;
-        }
+        #region PublicProperties
 
+        /// <summary>
+        /// The width of the allocatedTextures. Changing this value will cause realocation of the textures.
+        /// </summary>
         public int Width
         {
             get => this.width;
@@ -24,6 +26,9 @@ namespace GoThrough.Utility
             }
         }
 
+        /// <summary>
+        /// The height of the allocatedTextures. Changing this value will cause realocation of the textures.
+        /// </summary>
         public int Height
         {
             get => this.height;
@@ -37,12 +42,40 @@ namespace GoThrough.Utility
             }
         }
 
+        /// <summary>
+        /// The maximum number of textures allowed.
+        /// </summary>
         public int MaxTextureAllocations { get; set; }
 
+        #endregion
+
+        #region PrivateFields
+        
         private int width;
         private int height;
-        private List<Item> itens = new List<Item>();
+        private List<Item> items = new List<Item>();
 
+        #endregion
+
+        #region Lyfecycle
+
+        private void OnDestroy()
+        {
+            foreach (Item item in this.items)
+                DestroyRenderTexture(item);
+        }
+
+        #endregion
+
+        #region PublicMethods
+
+        /// <summary>
+        /// Creates a new RenderTexturePool.
+        /// </summary>
+        /// <param name="width">The width of the allocated textures.</param>
+        /// <param name="height">The height of the allocated textures.</param>
+        /// <param name="maxTextureAllocations">The maximum number of textures allocated.</param>
+        /// <returns>The created RenderTexturePool.</returns>
         public static RenderTexturePool Create(int width, int height, int maxTextureAllocations)
         {
             RenderTexturePool pool = CreateInstance<RenderTexturePool>();
@@ -52,52 +85,66 @@ namespace GoThrough.Utility
             return pool;
         }
 
-        private void OnDestroy()
-        {
-            foreach (Item item in this.itens)
-                DestroyRenderTexture(item);
-        }
-
+        /// <summary>
+        /// Sets the width and height of the textures. Will cause realocation.
+        /// </summary>
+        /// <param name="width">The new texture width.</param>
+        /// <param name="height">The new texture height.</param>
         public void SetResolution(int width, int height)
         {
             this.Width = width;
             this.Height = height;
         }
 
+        /// <summary>
+        /// Gets a texture from the pool.
+        /// </summary>
+        /// <returns>A free pool item.</returns>
         public Item GetRenderTexture()
         {
-            foreach (Item item in this.itens)
+            foreach (Item item in this.items)
                 if (!item.used)
                 {
                     item.used = true;
                     return item;
                 }
 
-            if (this.itens.Count >= this.MaxTextureAllocations)
+            if (this.items.Count >= this.MaxTextureAllocations)
                 throw new OverflowException("GoThrough's max render texture pool capacity reached.");
 
             Item newItem = this.CreateRenderTexture();
-            this.itens.Add(newItem);
+            this.items.Add(newItem);
             newItem.used = true;
             return newItem;
         }
 
+        /// <summary>
+        /// Releases a texture to be used.
+        /// </summary>
+        /// <param name="item">The pool item to be released.</param>
         public void ReleaseRenderTexture(Item item)
         {
             item.used = false;
         }
 
+        /// <summary>
+        /// Release all used textures.
+        /// </summary>
         public void ReleaseAllRenderTextures()
         {
-            foreach (Item item in this.itens)
+            foreach (Item item in this.items)
                 this.ReleaseRenderTexture(item);
         }
+
+        #endregion
+
+        #region PrivateMethods
 
         private Item CreateRenderTexture()
         {
             var newRenderTexture = new RenderTexture(this.width, this.height, 24, RenderTextureFormat.DefaultHDR);
             newRenderTexture.Create();
-            newRenderTexture.name = $"Temp Pool Buffer {this.itens.Count}";
+            newRenderTexture.name = $"Temp Pool Buffer {this.items.Count}";
 
             return new Item
             {
@@ -114,9 +161,24 @@ namespace GoThrough.Utility
 
         private void Clear()
         {
-            foreach (Item item in this.itens)
+            foreach (Item item in this.items)
                 DestroyRenderTexture(item);
-            this.itens.Clear();
+            this.items.Clear();
         }
+
+        #endregion
+
+        #region InnerTypes
+
+        /// <summary>
+        /// An item of the pool.
+        /// </summary>
+        public class Item
+        {
+            public RenderTexture renderTexture;
+            public bool used;
+        }
+
+        #endregion
     }
 }

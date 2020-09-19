@@ -2,6 +2,9 @@
 
 namespace GoThrough.Utility
 {
+    /// <summary>
+    /// Some helper methods for UnityEngine.Camera class.
+    /// </summary>
     public static class CameraExtensions
     {
         static readonly Vector3[] cubeCornerOffsets = {
@@ -15,10 +18,18 @@ namespace GoThrough.Utility
             new Vector3 (1, -1, 1),
         };
 
+        /// <summary>
+        /// Checks if the 2D bounds of <paramref name="nearObject"/> and <paramref name="farObject"/> overlap in the view of <paramref name="camera"/>.
+        /// Also checks if <paramref name="nearObject"/> is indeed closer to <paramref name="camera"/> than <paramref name="farObject"/>.
+        /// </summary>
+        /// <param name="camera">The camera.</param>
+        /// <param name="nearObject">The MeshFilter closer to <paramref name="camera"/>.</param>
+        /// <param name="farObject">The other MeshFilter.</param>
+        /// <returns>true if bounds overlap and <paramref name="nearObject"/> is closer.</returns>
         public static bool BoundsOverlap(this Camera camera, MeshFilter nearObject, MeshFilter farObject)
         {
-            var near = GetScreenRectFromBounds(nearObject, camera);
-            var far = GetScreenRectFromBounds(farObject, camera);
+            var near = camera.GetScreenRectFromBounds(nearObject);
+            var far = camera.GetScreenRectFromBounds(farObject);
 
             // ensure far object is indeed further away than near object
             if (far.zMax > near.zMin)
@@ -39,8 +50,14 @@ namespace GoThrough.Utility
             return false;
         }
 
+        /// <summary>
+        /// Gets an screen-space boundary from the <paramref name="renderer"/> boundary.
+        /// </summary>
+        /// <param name="camera">The camera.</param>
+        /// <param name="renderer">The object.</param>
+        /// <returns>An screen-space boundary of the object.</returns>
         // With thanks to http://www.turiyaware.com/a-solution-to-unitys-camera-worldtoscreenpoint-causing-ui-elements-to-display-when-object-is-behind-the-camera/
-        public static MinMax3D GetScreenRectFromBounds(MeshFilter renderer, Camera mainCamera)
+        public static MinMax3D GetScreenRectFromBounds(this Camera camera, MeshFilter renderer)
         {
             MinMax3D minMax = new MinMax3D(float.MaxValue, float.MinValue);
 
@@ -52,7 +69,7 @@ namespace GoThrough.Utility
             {
                 Vector3 localSpaceCorner = localBounds.center + Vector3.Scale(localBounds.extents, cubeCornerOffsets[i]);
                 Vector3 worldSpaceCorner = renderer.transform.TransformPoint(localSpaceCorner);
-                Vector3 viewportSpaceCorner = mainCamera.WorldToViewportPoint(worldSpaceCorner);
+                Vector3 viewportSpaceCorner = camera.WorldToViewportPoint(worldSpaceCorner);
 
                 if (viewportSpaceCorner.z > 0)
                 {
