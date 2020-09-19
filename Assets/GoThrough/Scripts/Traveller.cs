@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace GoThrough
 {
-    public class PortalTraveller : MonoBehaviour
+    public class Traveller : MonoBehaviour
     {
         #region Callbacks
-        public delegate void OnEnterPortalZoneDelegate(PortalTraveller traveller, Portal portal);
-        public delegate void OnLeavePortalZoneDelegate(PortalTraveller traveller, Portal portal);
-        public delegate void OnTeleportDelegate(PortalTraveller traveller, Portal source, Portal destination);
+        public delegate void OnEnterPortalZoneDelegate(Traveller traveller, Portal portal);
+        public delegate void OnLeavePortalZoneDelegate(Traveller traveller, Portal portal);
+        public delegate void OnTeleportDelegate(Traveller traveller, Portal source, Portal destination);
 
         public event OnEnterPortalZoneDelegate OnEnterPortalZone = (t, p) => { };
         public event OnLeavePortalZoneDelegate OnLeavePortalZone = (t, p) => { };

@@ -9,7 +9,7 @@ namespace GoThrough.Samples.UnsolvableMaze
 
     public class MazeBuilder : MonoBehaviour
     {
-        public PortalTraveller player;
+        public Traveller player;
         
         private Dictionary<Portal, Cell> portalToCell; 
         private Cell[] cells;
@@ -36,7 +36,7 @@ namespace GoThrough.Samples.UnsolvableMaze
             this.player.OnTeleport += this.OnPlayerTeleport;
         }
 
-        private void OnPlayerTeleport(PortalTraveller player, Portal source, Portal destination)
+        private void OnPlayerTeleport(Traveller player, Portal source, Portal destination)
         {
             Cell sourceCell = this.portalToCell[source];
             Cell destinationCell = this.portalToCell[destination];

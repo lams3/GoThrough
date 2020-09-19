@@ -10,9 +10,9 @@ namespace GoThrough
     public class Portal : MonoBehaviour
     {
         #region Callbacks
-        public delegate void OnTravellerEnterZoneDelegate(Portal portal, PortalTraveller traveller);
-        public delegate void OnTravellerLeaveZoneDelegate(Portal portal, PortalTraveller traveller);
-        public delegate void OnTeleportTravellerDelegate(Portal source, Portal destination, PortalTraveller traveller);
+        public delegate void OnTravellerEnterZoneDelegate(Portal portal, Traveller traveller);
+        public delegate void OnTravellerLeaveZoneDelegate(Portal portal, Traveller traveller);
+        public delegate void OnTeleportTravellerDelegate(Portal source, Portal destination, Traveller traveller);
 
         public event OnTravellerEnterZoneDelegate OnTravellerEnterZone = (p, t) => { };
         public event OnTravellerLeaveZoneDelegate OnTravellerLeaveZone = (p, t) => { };
@@ -102,7 +102,7 @@ namespace GoThrough
         private Vector3 originalScreenPosition;
 
         private Transform outTransform;
-        private Dictionary<PortalTraveller, Vector3> trackedTravellers = new Dictionary<PortalTraveller, Vector3>();
+        private Dictionary<Traveller, Vector3> trackedTravellers = new Dictionary<Traveller, Vector3>();
 
         #endregion
 
@@ -136,14 +136,14 @@ namespace GoThrough
         private void OnTriggerEnter(Collider other)
         {
             Rigidbody rb = other.attachedRigidbody;
-            PortalTraveller traveller = rb ? rb.GetComponent<PortalTraveller>() : other.GetComponent<PortalTraveller>();
+            Traveller traveller = rb ? rb.GetComponent<Traveller>() : other.GetComponent<Traveller>();
             this.BeginTracking(traveller);
         }
 
         private void OnTriggerExit(Collider other)
         {
             Rigidbody rb = other.attachedRigidbody;
-            PortalTraveller traveller = rb ? rb.GetComponent<PortalTraveller>() : other.GetComponent<PortalTraveller>();
+            Traveller traveller = rb ? rb.GetComponent<Traveller>() : other.GetComponent<Traveller>();
             this.StopTracking(traveller);
         }
 
@@ -151,7 +151,7 @@ namespace GoThrough
 
         #region Teleporting
         
-        private void BeginTracking(PortalTraveller traveller)
+        private void BeginTracking(Traveller traveller)
         {
             if (traveller && !this.trackedTravellers.ContainsKey(traveller))
             {
@@ -167,12 +167,12 @@ namespace GoThrough
         {
             yield return new WaitForFixedUpdate();
 
-            PortalTraveller[] travellers = this.trackedTravellers.Keys.ToArray();
-            foreach (PortalTraveller traveller in travellers)
+            Traveller[] travellers = this.trackedTravellers.Keys.ToArray();
+            foreach (Traveller traveller in travellers)
                 this.HandleTraveller(traveller);
         }
 
-        private void HandleTraveller(PortalTraveller traveller)
+        private void HandleTraveller(Traveller traveller)
         {
             if (!this.trackedTravellers.ContainsKey(traveller))
                 return;
@@ -198,7 +198,7 @@ namespace GoThrough
             this.trackedTravellers[traveller] = traveller.transform.position;
         }
 
-        private void StopTracking(PortalTraveller traveller)
+        private void StopTracking(Traveller traveller)
         {
             if (traveller && this.trackedTravellers.ContainsKey(traveller))
             {
