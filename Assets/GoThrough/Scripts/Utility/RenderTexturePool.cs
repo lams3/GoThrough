@@ -9,6 +9,14 @@ namespace GoThrough.Utility
     /// </summary>
     public class RenderTexturePool : ScriptableObject
     {
+        #region PrivateFields
+        
+        private int width;
+        private int height;
+        private List<Item> items = new List<Item>();
+
+        #endregion
+
         #region PublicProperties
 
         /// <summary>
@@ -46,14 +54,6 @@ namespace GoThrough.Utility
         /// The maximum number of textures allowed.
         /// </summary>
         public int MaxTextureAllocations { get; set; }
-
-        #endregion
-
-        #region PrivateFields
-        
-        private int width;
-        private int height;
-        private List<Item> items = new List<Item>();
 
         #endregion
 

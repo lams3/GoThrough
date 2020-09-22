@@ -8,22 +8,24 @@ using UnityEngine.Rendering.Universal;
 
 namespace GoThrough
 {
-    public partial class VisibilityGraph
+    public partial class VisibilityTree
     {
+        /// <summary>
+        /// Represents a Node of the VisibilityTree.
+        /// </summary>
         private class Node
         {
-            private struct VisiblePortalResources
-            {
-                public Portal visiblePortal;
-                public RenderTexturePool.Item poolItem;
-                public Texture originalTexture;
-            }
+            #region PrivateFields
 
             private PortalRenderer renderer;
             private Portal portal;
             private Matrix4x4 viewPose;
             private int depth;
             private List<Node> dependencies = new List<Node>();
+
+            #endregion
+
+            #region Constructors
 
             public Node(PortalRenderer renderer, Portal portal, Matrix4x4 viewPose, int currentDepth = 1)
             {
@@ -49,6 +51,16 @@ namespace GoThrough
                 }
             }
 
+            #endregion
+
+            #region PublicMethods
+
+            /// <summary>
+            /// Recursivelly renders the Node and it's children in a depth first order.
+            /// </summary>
+            /// <param name="ctx">The rendering context.</param>
+            /// <param name="temporaryPoolItem">An render texture to be released after render.</param>
+            /// <param name="originalTexture">The previous texture attached to this Node's Portal.</param>
             public void Render(ScriptableRenderContext ctx, out RenderTexturePool.Item temporaryPoolItem, out Texture originalTexture)
             {
                 var visiblePortalResourcesList = new List<VisiblePortalResources>();
@@ -98,6 +110,16 @@ namespace GoThrough
                 this.portal.SetTexture(temporaryPoolItem.renderTexture);
             }
 
+            /// <summary>
+            /// Recursivelly counts the amount of Nodes in this subtree.
+            /// </summary>
+            public int GetChildrenCount()
+            {
+                if (this.depth == this.renderer.MaxRecursionDepth)
+                    return 0;
+
+                return this.dependencies.Sum(el => 1 + el.GetChildrenCount());
+            }
 
             public override string ToString()
             {
@@ -117,13 +139,18 @@ namespace GoThrough
                 return stringBuilder.ToString();
             }
 
-            public int GetChildrenCount()
-            {
-                if (this.depth == this.renderer.MaxRecursionDepth)
-                    return 0;
+            #endregion
 
-                return this.dependencies.Sum(el => 1 + el.GetChildrenCount());
+            #region InnerTypes
+
+            private struct VisiblePortalResources
+            {
+                public Portal visiblePortal;
+                public RenderTexturePool.Item poolItem;
+                public Texture originalTexture;
             }
+
+            #endregion
         }
     }
 }

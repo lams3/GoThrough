@@ -7,81 +7,21 @@ using UnityEngine.Rendering;
 
 namespace GoThrough
 {
+    /// <summary>
+    /// The component representing a portal.
+    /// </summary>
     public class Portal : MonoBehaviour
     {
-        #region Callbacks
-        public delegate void OnTravellerEnterZoneDelegate(Portal portal, Traveller traveller);
-        public delegate void OnTravellerLeaveZoneDelegate(Portal portal, Traveller traveller);
-        public delegate void OnTeleportTravellerDelegate(Portal source, Portal destination, Traveller traveller);
-
-        public event OnTravellerEnterZoneDelegate OnTravellerEnterZone = (p, t) => { };
-        public event OnTravellerLeaveZoneDelegate OnTravellerLeaveZone = (p, t) => { };
-        public event OnTeleportTravellerDelegate OnTeleportTraveller = (s, d, t) => { };
-        #endregion
-
-        #region NewCode
-
-        public Transform OutTransform => this.outTransform;
-
-        public bool IsVisibleFrom(Camera camera)
-        {
-            return this.screen.IsVisibleFrom(camera);
-        }
-
-        public bool IsVisibleWithin(Camera camera, Portal portal)
-        {
-            return camera.BoundsOverlap(portal.screenMeshFilter, this.screenMeshFilter);
-        }
-
-        public void SetTexture(Texture texture)
-        {
-            this.screen.material.SetTexture("_MainTex", texture);
-        }
-
-        public Texture GetTexture()
-        {
-            return this.screen.material.GetTexture("_MainTex");
-        }
-
-        public Vector4 GetClippingPlane()
-        {
-            Plane clipPlane = new Plane(-this.OutTransform.forward, this.OutTransform.position);
-            Vector4 clipPlaneVector = new Vector4(clipPlane.normal.x, clipPlane.normal.y, clipPlane.normal.z, clipPlane.distance);
-            return clipPlaneVector;
-        }
-
-        public void SetupScreen(Camera camera)
-        {
-            float halfHeight = camera.nearClipPlane * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
-            float halfWidth = halfHeight * camera.aspect;
-            float dstToNearPlaneCorner = new Vector3(halfWidth, halfHeight, camera.nearClipPlane).magnitude;
-            float screenThickness = 2.0f * dstToNearPlaneCorner;
-
-            Vector3 offset = -Vector3.forward * screenThickness * 0.5f;
-
-            Transform screenT = this.screen.transform;
-            screenT.localPosition = this.originalScreenPosition + offset;
-            screenT.localScale = new Vector3(screenT.localScale.x, screenT.localScale.y, screenThickness);
-        }
-
-        public void EnableScreen()
-        {
-            this.screen.shadowCastingMode = ShadowCastingMode.TwoSided;
-            this.screen.enabled = true;
-        }
-
-        public void DisableScreen()
-        {
-            this.screen.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
-            this.screen.enabled = false;
-        }
-
-        #endregion
-
-        #region Parameters
+        #region SerializedFields
 
         [SerializeField]
         private Portal destination;
+
+        #endregion
+
+        #region PublicProperties
+
+        public Transform OutTransform => this.outTransform;
 
         public Portal Destination
         {
@@ -93,6 +33,25 @@ namespace GoThrough
                     PortalManager.Instance?.Subscribe(this);
             }
         }
+
+        #endregion
+
+        #region Events
+
+        /// <summary>
+        /// Called when a traveller enters tracking zone.
+        /// </summary>
+        public event OnTravellerEnterZoneDelegate OnTravellerEnterZone = (p, t) => { };
+
+        /// <summary>
+        /// Called when a traveller leaves tracking zone.
+        /// </summary>
+        public event OnTravellerLeaveZoneDelegate OnTravellerLeaveZone = (p, t) => { };
+
+        /// <summary>
+        /// Called when a traveller is teleported.
+        /// </summary>
+        public event OnTeleportTravellerDelegate OnTeleportTraveller = (s, d, t) => { };
 
         #endregion
 
@@ -149,7 +108,97 @@ namespace GoThrough
 
         #endregion
 
-        #region Teleporting
+        #region PublicMethods
+
+        /// <summary>
+        /// Checks if the portal is visible by <paramref name="camera"/>.
+        /// </summary>
+        /// <param name="camera">The camera.</param>
+        /// <returns>True if <paramref name="camera"/> can see the portal.</returns>
+        public bool IsVisibleFrom(Camera camera)
+        {
+            return this.screen.IsVisibleFrom(camera);
+        }
+
+        /// <summary>
+        /// Checks if the portal can be seen by <paramref name="camera"/> through the frame of <paramref name="frame"/>.
+        /// </summary>
+        /// <param name="camera">The camera.</param>
+        /// <param name="frame">The other portal.</param>
+        /// <returns>True if the portal can be seen through the frame of <paramref name="frame"/> by <paramref name="camera"/>.</returns>
+        public bool IsVisibleWithin(Camera camera, Portal frame)
+        {
+            return camera.BoundsOverlap(frame.screenMeshFilter, this.screenMeshFilter);
+        }
+
+        /// <summary>
+        /// Sets the portal's screen texture.
+        /// </summary>
+        /// <param name="texture">The texture to be used.</param>
+        public void SetTexture(Texture texture)
+        {
+            this.screen.material.SetTexture("_MainTex", texture);
+        }
+
+        /// <summary>
+        /// Retrieves the texture currently assigned to the portal's screen.
+        /// </summary>
+        /// <returns>The texture currently assigned.</returns>
+        public Texture GetTexture()
+        {
+            return this.screen.material.GetTexture("_MainTex");
+        }
+
+        /// <summary>
+        /// Calculates the clipping plane of the portal in world space.
+        /// </summary>
+        /// <returns>The clipping plane of the portal in world space.</returns>
+        public Vector4 GetClippingPlane()
+        {
+            Plane clipPlane = new Plane(-this.OutTransform.forward, this.OutTransform.position);
+            Vector4 clipPlaneVector = new Vector4(clipPlane.normal.x, clipPlane.normal.y, clipPlane.normal.z, clipPlane.distance);
+            return clipPlaneVector;
+        }
+
+        /// <summary>
+        /// Setup the screen to avoid nearplane clipping.
+        /// </summary>
+        /// <param name="camera">The camera to avoid clipping with.</param>
+        public void SetupScreen(Camera camera)
+        {
+            float halfHeight = camera.nearClipPlane * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+            float halfWidth = halfHeight * camera.aspect;
+            float dstToNearPlaneCorner = new Vector3(halfWidth, halfHeight, camera.nearClipPlane).magnitude;
+            float screenThickness = 2.0f * dstToNearPlaneCorner;
+
+            Vector3 offset = -Vector3.forward * screenThickness * 0.5f;
+
+            Transform screenT = this.screen.transform;
+            screenT.localPosition = this.originalScreenPosition + offset;
+            screenT.localScale = new Vector3(screenT.localScale.x, screenT.localScale.y, screenThickness);
+        }
+
+        /// <summary>
+        /// Enable the screen.
+        /// </summary>
+        public void EnableScreen()
+        {
+            this.screen.shadowCastingMode = ShadowCastingMode.TwoSided;
+            this.screen.enabled = true;
+        }
+
+        /// <summary>
+        /// Disable the screen.
+        /// </summary>
+        public void DisableScreen()
+        {
+            this.screen.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+            this.screen.enabled = false;
+        }
+
+        #endregion
+
+        #region PrivateMethods
         
         private void BeginTracking(Traveller traveller)
         {
@@ -209,6 +258,14 @@ namespace GoThrough
                 traveller.InvokeOnLeavePortalZone(this);
             }
         }
+
+        #endregion
+
+        #region InnerTypes
+
+        public delegate void OnTravellerEnterZoneDelegate(Portal portal, Traveller traveller);
+        public delegate void OnTravellerLeaveZoneDelegate(Portal portal, Traveller traveller);
+        public delegate void OnTeleportTravellerDelegate(Portal source, Portal destination, Traveller traveller);
 
         #endregion
     }

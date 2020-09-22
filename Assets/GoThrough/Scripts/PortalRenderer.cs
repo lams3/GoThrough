@@ -4,14 +4,30 @@ using UnityEngine.Rendering;
 
 namespace GoThrough
 {
+    /// <summary>
+    /// Placed along with a Camera to make it render Portals correctly.
+    /// </summary>
     [RequireComponent(typeof(Camera))]
     public class PortalRenderer : MonoBehaviour
     {
+        #region SerializedFields
+
         [SerializeField]
         private int maxRecursionDepth = 5;
 
         [SerializeField]
         private int maxTextureAllocations = 100;
+
+        #endregion
+
+        #region PrivateFields
+
+        private int previousWidth;
+        private int previousHeight;
+
+        #endregion
+
+        #region PublicProperties
 
         public int MaxTextureAllocations
         {
@@ -37,9 +53,10 @@ namespace GoThrough
 
         private int CurrentWidth => this.BaseCamera.targetTexture ? this.BaseCamera.targetTexture.width : Screen.width;
         private int CurrentHeight => this.BaseCamera.targetTexture ? this.BaseCamera.targetTexture.height : Screen.height;
-        
-        private int previousWidth;
-        private int previousHeight;
+
+        #endregion
+
+        #region Lifecycle
 
         private void Awake()
         {
@@ -70,6 +87,10 @@ namespace GoThrough
             RenderPipelineManager.endCameraRendering -= this.RenderPipelineManager_endCameraRendering;
         }
 
+        #endregion
+
+        #region PrivateMethods
+
         private void RenderPipelineManager_beginCameraRendering(ScriptableRenderContext ctx, Camera cam)
         {
             if (cam == this.BaseCamera)
@@ -83,8 +104,8 @@ namespace GoThrough
                 foreach (var portal in PortalManager.Instance.Portals)
                     portal.SetupScreen(cam);
 
-                var graph = new VisibilityGraph(this);
-                graph.Render(ctx);
+                var visibilityTree = new VisibilityTree(this);
+                visibilityTree.Render(ctx);
             }
         }
 
@@ -92,5 +113,7 @@ namespace GoThrough
         {
             this.RenderTexturePool.ReleaseAllRenderTextures();
         }
+
+        #endregion
     }
 }
