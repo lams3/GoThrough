@@ -1,132 +1,276 @@
-﻿using System.Collections.Generic;
+﻿using GoThrough.Utility;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace GoThrough
 {
+    /// <summary>
+    /// The component representing a portal.
+    /// </summary>
     public class Portal : MonoBehaviour
     {
-        [SerializeField]
-        private Camera portalCamera;
+        #region SerializedFields
 
         [SerializeField]
-        private Transform pairPortal;
+        private Portal destination;
 
-        private Camera mainCamera;
+        #endregion
 
-        private RenderTexture renderTexture;
-        private float nearClipOffset = 0.05f;
-        private float nearClipLimit = 0.2f;
+        #region PublicProperties
 
-        private Dictionary<PortalTraveller, Vector3> trackedTravellers = new Dictionary<PortalTraveller, Vector3>();
+        public Portal Destination
+        {
+            get => this.destination;
+            set
+            {
+                this.destination = value;
+                if (this.isActiveAndEnabled)
+                    PortalManager.Instance?.Subscribe(this);
+            }
+        }
+
+        #endregion
+
+        #region InternalProperties
+
+        internal Transform OutTransform => this.outTransform;
+
+        #endregion
+
+        #region Events
+
+        /// <summary>
+        /// Called when a traveller enters tracking zone.
+        /// </summary>
+        public event OnTravellerEnterZoneDelegate OnTravellerEnterZone = (p, t) => { };
+
+        /// <summary>
+        /// Called when a traveller leaves tracking zone.
+        /// </summary>
+        public event OnTravellerLeaveZoneDelegate OnTravellerLeaveZone = (p, t) => { };
+
+        /// <summary>
+        /// Called when a traveller is teleported.
+        /// </summary>
+        public event OnTeleportTravellerDelegate OnTeleportTraveller = (s, d, t) => { };
+
+        #endregion
+
+        #region PrivateMembers
+        private MeshRenderer screen;
+        private MeshFilter screenMeshFilter;
+        private Vector3 originalScreenPosition;
+
+        private Transform outTransform;
+        private Dictionary<Traveller, Vector3> trackedTravellers = new Dictionary<Traveller, Vector3>();
+
+        #endregion
+
+        #region Lifecycle
 
         private void Awake()
         {
-            this.mainCamera = Camera.main;
+            this.outTransform = this.transform.Find("OutTransform");
+            this.screen = this.transform.Find("Screen").GetComponent<MeshRenderer>();
+
+            this.screenMeshFilter = this.screen.GetComponent<MeshFilter>();
+            this.originalScreenPosition = this.screen.transform.localPosition;
         }
 
-        private void Update()
+        private void OnEnable()
         {
-            this.CreateViewTexture();
-
-            Matrix4x4 matrix = this.pairPortal.transform.localToWorldMatrix * Matrix4x4.Scale(new Vector3(-1, 1, -1)) * this.transform.worldToLocalMatrix * this.mainCamera.transform.localToWorldMatrix;
-            this.portalCamera.transform.SetPositionAndRotation(matrix.GetColumn(3), matrix.rotation);
-        
-            this.SetProjectionMatrix(this.mainCamera);
+            PortalManager.Instance?.Subscribe(this);
         }
 
-        private void LateUpdate()
+        private void OnDisable()
         {
-            PortalTraveller[] travellers = this.trackedTravellers.Keys.ToArray();
-            foreach (PortalTraveller traveller in travellers)
-            {
-                if (!this.trackedTravellers.ContainsKey(traveller))
-                    continue;
+            PortalManager.Instance?.Unsubscribe(this);
+        }
 
-                Vector3 oldPos = this.trackedTravellers[traveller];
-                Vector3 newPos = traveller.transform.position;
-                Vector3 thisPos = this.transform.position;
-                float oldDot = Vector3.Dot(this.transform.forward, (oldPos - thisPos).normalized);
-                float newDot = Vector3.Dot(this.transform.forward, (newPos - thisPos).normalized);
-
-                if (oldDot < 0 && newDot >= 0)
-                {
-                    Matrix4x4 matrix = this.pairPortal.transform.localToWorldMatrix * Matrix4x4.Scale(new Vector3(-1, 1, -1)) * this.transform.worldToLocalMatrix;
-                    Vector4 translation = matrix.GetColumn(3);
-                    traveller.transform.rotation *= matrix.rotation;
-                    traveller.transform.position += new Vector3(translation.x, translation.y, translation.z);
-                    this.trackedTravellers.Remove(traveller);
-                    continue;
-                }
-
-                this.trackedTravellers[traveller] = traveller.transform.position;
-            }
+        private void FixedUpdate()
+        {
+            if (this.Destination)
+                this.StartCoroutine(this.HandleAllTravellers());
         }
 
         private void OnTriggerEnter(Collider other)
         {
             Rigidbody rb = other.attachedRigidbody;
-            PortalTraveller traveller = rb ? rb.GetComponent<PortalTraveller>() : other.GetComponent<PortalTraveller>();
-            if (traveller)
-            {
-                this.trackedTravellers.Add(traveller, traveller.transform.position);
-            }
+            Traveller traveller = rb ? rb.GetComponent<Traveller>() : other.GetComponent<Traveller>();
+            this.BeginTracking(traveller);
         }
 
         private void OnTriggerExit(Collider other)
         {
             Rigidbody rb = other.attachedRigidbody;
-            PortalTraveller traveller = rb ? rb.GetComponent<PortalTraveller>() : other.GetComponent<PortalTraveller>();
-            if (traveller)
+            Traveller traveller = rb ? rb.GetComponent<Traveller>() : other.GetComponent<Traveller>();
+            this.StopTracking(traveller);
+        }
+
+        #endregion
+
+        #region InternalMethods
+
+        /// <summary>
+        /// Checks if the portal is visible by <paramref name="camera"/>.
+        /// </summary>
+        /// <param name="camera">The camera.</param>
+        /// <returns>True if <paramref name="camera"/> can see the portal.</returns>
+        internal bool IsVisibleFrom(Camera camera)
+        {
+            return this.screen.IsVisibleFrom(camera);
+        }
+
+        /// <summary>
+        /// Checks if the portal can be seen by <paramref name="camera"/> through the frame of <paramref name="frame"/>.
+        /// </summary>
+        /// <param name="camera">The camera.</param>
+        /// <param name="frame">The other portal.</param>
+        /// <returns>True if the portal can be seen through the frame of <paramref name="frame"/> by <paramref name="camera"/>.</returns>
+        internal bool IsVisibleWithin(Camera camera, Portal frame)
+        {
+            return camera.BoundsOverlap(frame.screenMeshFilter, this.screenMeshFilter);
+        }
+
+        /// <summary>
+        /// Sets the portal's screen texture.
+        /// </summary>
+        /// <param name="texture">The texture to be used.</param>
+        internal void SetTexture(Texture texture)
+        {
+            this.screen.material.SetTexture("_MainTex", texture);
+        }
+
+        /// <summary>
+        /// Retrieves the texture currently assigned to the portal's screen.
+        /// </summary>
+        /// <returns>The texture currently assigned.</returns>
+        internal Texture GetTexture()
+        {
+            return this.screen.material.GetTexture("_MainTex");
+        }
+
+        /// <summary>
+        /// Calculates the clipping plane of the portal in world space.
+        /// </summary>
+        /// <returns>The clipping plane of the portal in world space.</returns>
+        internal Vector4 GetClippingPlane()
+        {
+            Plane clipPlane = new Plane(-this.OutTransform.forward, this.OutTransform.position);
+            Vector4 clipPlaneVector = new Vector4(clipPlane.normal.x, clipPlane.normal.y, clipPlane.normal.z, clipPlane.distance);
+            return clipPlaneVector;
+        }
+
+        /// <summary>
+        /// Setup the screen to avoid nearplane clipping.
+        /// </summary>
+        /// <param name="camera">The camera to avoid clipping with.</param>
+        internal void SetupScreen(Camera camera)
+        {
+            float halfHeight = camera.nearClipPlane * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
+            float halfWidth = halfHeight * camera.aspect;
+            float dstToNearPlaneCorner = new Vector3(halfWidth, halfHeight, camera.nearClipPlane).magnitude;
+            float screenThickness = 2.0f * dstToNearPlaneCorner;
+
+            Vector3 offset = -Vector3.forward * screenThickness * 0.5f;
+
+            Transform screenT = this.screen.transform;
+            screenT.localPosition = this.originalScreenPosition + offset;
+            screenT.localScale = new Vector3(screenT.localScale.x, screenT.localScale.y, screenThickness);
+        }
+
+        /// <summary>
+        /// Enable the screen.
+        /// </summary>
+        internal void EnableScreen()
+        {
+            this.screen.shadowCastingMode = ShadowCastingMode.TwoSided;
+            this.screen.enabled = true;
+        }
+
+        /// <summary>
+        /// Disable the screen.
+        /// </summary>
+        internal void DisableScreen()
+        {
+            this.screen.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+            this.screen.enabled = false;
+        }
+
+        #endregion
+
+        #region PrivateMethods
+        
+        private void BeginTracking(Traveller traveller)
+        {
+            if (traveller && !this.trackedTravellers.ContainsKey(traveller))
+            {
+                this.trackedTravellers.Add(traveller, traveller.transform.position);
+                traveller.BeginTransition(this.transform, this.Destination?.OutTransform);
+
+                this.OnTravellerEnterZone.Invoke(this, traveller);
+                traveller.InvokeOnEnterPortalZone(this);
+            }
+        }
+
+        private IEnumerator HandleAllTravellers()
+        {
+            yield return new WaitForFixedUpdate();
+
+            Traveller[] travellers = this.trackedTravellers.Keys.ToArray();
+            foreach (Traveller traveller in travellers)
+                this.HandleTraveller(traveller);
+        }
+
+        private void HandleTraveller(Traveller traveller)
+        {
+            if (!this.trackedTravellers.ContainsKey(traveller))
+                return;
+
+            Vector3 oldPos = this.transform.InverseTransformPoint(this.trackedTravellers[traveller]);
+            Vector3 newPos = this.transform.InverseTransformPoint(traveller.transform.position);
+
+            bool passFront = oldPos.z >= 0 && newPos.z < 0;
+            if (passFront && !traveller.TeleportedThisFrame)
+            {
+                this.StopTracking(traveller);
+
+                traveller.Teleport(this, this.Destination);
+                
+                this.OnTeleportTraveller.Invoke(this, this.Destination, traveller);
+                traveller.InvokeOnTeleport(this, this.Destination);
+                
+                this.Destination.BeginTracking(traveller);
+                
+                return;
+            }
+
+            this.trackedTravellers[traveller] = traveller.transform.position;
+        }
+
+        private void StopTracking(Traveller traveller)
+        {
+            if (traveller && this.trackedTravellers.ContainsKey(traveller))
             {
                 this.trackedTravellers.Remove(traveller);
+                traveller.EndTransition();
+
+                this.OnTravellerLeaveZone.Invoke(this, traveller);
+                traveller.InvokeOnLeavePortalZone(this);
             }
         }
 
-        private void CreateViewTexture()
-        {
-            if (renderTexture == null || renderTexture.width != Screen.width || renderTexture.height != Screen.height)
-            {
-                if (renderTexture != null)
-                {
-                    renderTexture.Release();
-                }
-                renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
-                // Render the view from the portal camera to the view texture
-                portalCamera.targetTexture = renderTexture;
+        #endregion
 
-                // Display the view texture on the screen of the linked portal
-                this.GetComponent<MeshRenderer>().material.SetTexture("_MainTex", renderTexture);
-            }
-        }
+        #region InnerTypes
 
-        // Use custom projection matrix to align portal camera's near clip plane with the surface of the portal
-        // Note that this affects precision of the depth buffer, which can cause issues with effects like screenspace AO
-        private void SetProjectionMatrix(Camera template)
-        {
-            // Learning resource:
-            // http://www.terathon.com/lengyel/Lengyel-Oblique.pdf
-            Transform clipPlane = this.pairPortal.transform;
-            int dot = System.Math.Sign(Vector3.Dot(clipPlane.forward, clipPlane.position - this.portalCamera.transform.position));
+        public delegate void OnTravellerEnterZoneDelegate(Portal portal, Traveller traveller);
+        public delegate void OnTravellerLeaveZoneDelegate(Portal portal, Traveller traveller);
+        public delegate void OnTeleportTravellerDelegate(Portal source, Portal destination, Traveller traveller);
 
-            Vector3 camSpacePos = this.portalCamera.worldToCameraMatrix.MultiplyPoint(clipPlane.position);
-            Vector3 camSpaceNormal = this.portalCamera.worldToCameraMatrix.MultiplyVector(clipPlane.forward) * dot;
-            float camSpaceDst = -Vector3.Dot(camSpacePos, camSpaceNormal) + this.nearClipOffset;
-
-            // Don't use oblique clip plane if very close to portal as it seems this can cause some visual artifacts
-            if (Mathf.Abs(camSpaceDst) > this.nearClipLimit)
-            {
-                Vector4 clipPlaneCameraSpace = new Vector4(camSpaceNormal.x, camSpaceNormal.y, camSpaceNormal.z, camSpaceDst);
-
-                // Update projection based on new clip plane
-                // Calculate matrix with player cam so that player camera settings (fov, etc) are used
-                this.portalCamera.projectionMatrix = template.CalculateObliqueMatrix(clipPlaneCameraSpace);
-            }
-            else
-            {
-                this.portalCamera.projectionMatrix = template.projectionMatrix;
-            }
-        }
+        #endregion
     }
 }

@@ -1,0 +1,15 @@
+{
+    "name": "GoThrough.Samples",
+    "references": [
+        "GUID:38836e14efc88a444a1c84d066cc164c"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
