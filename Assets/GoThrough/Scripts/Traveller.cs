@@ -30,9 +30,9 @@ namespace GoThrough
 
         #endregion
 
-        #region PublicProperties
+        #region InternalProperties
         
-        public bool TeleportedThisFrame => this.teleportedThisFrame;
+        internal bool TeleportedThisFrame => this.teleportedThisFrame;
 
         #endregion
 
@@ -77,13 +77,13 @@ namespace GoThrough
 
         #endregion
 
-        #region PublicMethods
+        #region InternalMethods
         /// <summary>
         /// Teleports an Traveller from <paramref name="source"/> to <paramref name="destination"/>.
         /// </summary>
         /// <param name="source">The Portal the traveller is currently on.</param>
         /// <param name="destination">The destination.</param>
-        public void Teleport(Portal source, Portal destination)
+        internal void Teleport(Portal source, Portal destination)
         {
             Matrix4x4 localTransform = destination.OutTransform.localToWorldMatrix * source.transform.worldToLocalMatrix * this.transform.localToWorldMatrix;
             this.transform.SetPositionAndRotation(localTransform.GetColumn(3), localTransform.rotation);
@@ -102,7 +102,7 @@ namespace GoThrough
         /// </summary>
         /// <param name="source">The Transform the traveller is currently on.</param>
         /// <param name="destination">The destination.</param>
-        public void BeginTransition(Transform source, Transform destination)
+        internal void BeginTransition(Transform source, Transform destination)
         {
             if (this.graphicsClone == null)
             {
@@ -128,7 +128,7 @@ namespace GoThrough
         /// <summary>
         /// Ends any transition ocurring on this Traveller.
         /// </summary>
-        public void EndTransition()
+        internal void EndTransition()
         {
             this.source = this.destination = null;
 
@@ -145,7 +145,7 @@ namespace GoThrough
         /// Invokes the OnEnterPortalZone event on this Traveller.
         /// </summary>
         /// <param name="portal">The Portal calling the event.</param>
-        public void InvokeOnEnterPortalZone(Portal portal)
+        internal void InvokeOnEnterPortalZone(Portal portal)
         {
             this.OnEnterPortalZone.Invoke(this, portal);
         }
@@ -154,7 +154,7 @@ namespace GoThrough
         /// Invokes the OnLeavePortalZone event on this Traveller.
         /// </summary>
         /// <param name="portal">The Portal calling the event.</param>
-        public void InvokeOnLeavePortalZone(Portal portal)
+        internal void InvokeOnLeavePortalZone(Portal portal)
         {
             this.OnLeavePortalZone.Invoke(this, portal);
         }
@@ -164,7 +164,7 @@ namespace GoThrough
         /// </summary>
         /// <param name="source">The source Portal.</param>
         /// <param name="destination">The destination Portal.</param>
-        public void InvokeOnTeleport(Portal source, Portal destination)
+        internal void InvokeOnTeleport(Portal source, Portal destination)
         {
             this.OnTeleport.Invoke(this, source, destination);
         }

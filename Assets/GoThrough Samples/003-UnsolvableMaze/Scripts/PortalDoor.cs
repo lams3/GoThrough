@@ -3,9 +3,9 @@
 namespace GoThrough.Samples.UnsolvableMaze
 {
     [RequireComponent(typeof(Portal))]
-    public class PortalDoor : MonoBehaviour
+    internal class PortalDoor : MonoBehaviour
     {
-        public GameObject door;
+        internal GameObject door;
 
         private PlayerController player;
         private Portal portal;

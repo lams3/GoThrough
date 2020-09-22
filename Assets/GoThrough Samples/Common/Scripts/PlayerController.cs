@@ -3,7 +3,7 @@
 namespace GoThrough.Samples
 {
 	[RequireComponent(typeof(Rigidbody))]
-	public class PlayerController : MonoBehaviour
+	internal class PlayerController : MonoBehaviour
     {
 		public float speed = 10.0f;
 		public float gravity = 10.0f;

@@ -7,7 +7,7 @@ namespace GoThrough.Utility
     /// <summary>
     /// A dynamic resolution RenderTexturePool.
     /// </summary>
-    public class RenderTexturePool : ScriptableObject
+    internal class RenderTexturePool : ScriptableObject
     {
         #region PrivateFields
         
@@ -22,7 +22,7 @@ namespace GoThrough.Utility
         /// <summary>
         /// The width of the allocatedTextures. Changing this value will cause realocation of the textures.
         /// </summary>
-        public int Width
+        internal int Width
         {
             get => this.width;
             set {
@@ -37,7 +37,7 @@ namespace GoThrough.Utility
         /// <summary>
         /// The height of the allocatedTextures. Changing this value will cause realocation of the textures.
         /// </summary>
-        public int Height
+        internal int Height
         {
             get => this.height;
             set
@@ -53,7 +53,7 @@ namespace GoThrough.Utility
         /// <summary>
         /// The maximum number of textures allowed.
         /// </summary>
-        public int MaxTextureAllocations { get; set; }
+        internal int MaxTextureAllocations { get; set; }
 
         #endregion
 
@@ -67,7 +67,7 @@ namespace GoThrough.Utility
 
         #endregion
 
-        #region PublicMethods
+        #region InternalMethods
 
         /// <summary>
         /// Creates a new RenderTexturePool.
@@ -76,7 +76,7 @@ namespace GoThrough.Utility
         /// <param name="height">The height of the allocated textures.</param>
         /// <param name="maxTextureAllocations">The maximum number of textures allocated.</param>
         /// <returns>The created RenderTexturePool.</returns>
-        public static RenderTexturePool Create(int width, int height, int maxTextureAllocations)
+        internal static RenderTexturePool Create(int width, int height, int maxTextureAllocations)
         {
             RenderTexturePool pool = CreateInstance<RenderTexturePool>();
             pool.Width = width;
@@ -90,7 +90,7 @@ namespace GoThrough.Utility
         /// </summary>
         /// <param name="width">The new texture width.</param>
         /// <param name="height">The new texture height.</param>
-        public void SetResolution(int width, int height)
+        internal void SetResolution(int width, int height)
         {
             this.Width = width;
             this.Height = height;
@@ -100,7 +100,7 @@ namespace GoThrough.Utility
         /// Gets a texture from the pool.
         /// </summary>
         /// <returns>A free pool item.</returns>
-        public Item GetRenderTexture()
+        internal Item GetRenderTexture()
         {
             foreach (Item item in this.items)
                 if (!item.used)
@@ -122,7 +122,7 @@ namespace GoThrough.Utility
         /// Releases a texture to be used.
         /// </summary>
         /// <param name="item">The pool item to be released.</param>
-        public void ReleaseRenderTexture(Item item)
+        internal void ReleaseRenderTexture(Item item)
         {
             item.used = false;
         }
@@ -130,7 +130,7 @@ namespace GoThrough.Utility
         /// <summary>
         /// Release all used textures.
         /// </summary>
-        public void ReleaseAllRenderTextures()
+        internal void ReleaseAllRenderTextures()
         {
             foreach (Item item in this.items)
                 this.ReleaseRenderTexture(item);
@@ -173,10 +173,10 @@ namespace GoThrough.Utility
         /// <summary>
         /// An item of the pool.
         /// </summary>
-        public class Item
+        internal class Item
         {
-            public RenderTexture renderTexture;
-            public bool used;
+            internal RenderTexture renderTexture;
+            internal bool used;
         }
 
         #endregion

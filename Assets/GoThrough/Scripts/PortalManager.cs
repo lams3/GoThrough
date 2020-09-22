@@ -20,13 +20,13 @@ namespace GoThrough
 
         #endregion
 
-        #region PublicMethods
+        #region InternalMethods
 
         /// <summary>
         /// Called by a portal when it is enabled.
         /// </summary>
         /// <param name="portal"></param>
-        public void Subscribe(Portal portal)
+        internal void Subscribe(Portal portal)
         {
             if (!portal.Destination)
                 throw new System.NullReferenceException($"{portal.name} has no destination. Please, set a destination for it.");
@@ -37,7 +37,7 @@ namespace GoThrough
         /// Called by a portal when it is disabled.
         /// </summary>
         /// <param name="portal"></param>
-        public void Unsubscribe(Portal portal)
+        internal void Unsubscribe(Portal portal)
         {
             this.portals.Remove(portal);
         }

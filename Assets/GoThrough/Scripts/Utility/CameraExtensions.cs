@@ -5,9 +5,9 @@ namespace GoThrough.Utility
     /// <summary>
     /// Some helper methods for UnityEngine.Camera class.
     /// </summary>
-    public static class CameraExtensions
+    internal static class CameraExtensions
     {
-        static readonly Vector3[] cubeCornerOffsets = {
+        private static readonly Vector3[] cubeCornerOffsets = {
             new Vector3 (1, 1, 1),
             new Vector3 (-1, 1, 1),
             new Vector3 (-1, -1, 1),
@@ -26,7 +26,7 @@ namespace GoThrough.Utility
         /// <param name="nearObject">The MeshFilter closer to <paramref name="camera"/>.</param>
         /// <param name="farObject">The other MeshFilter.</param>
         /// <returns>true if bounds overlap and <paramref name="nearObject"/> is closer.</returns>
-        public static bool BoundsOverlap(this Camera camera, MeshFilter nearObject, MeshFilter farObject)
+        internal static bool BoundsOverlap(this Camera camera, MeshFilter nearObject, MeshFilter farObject)
         {
             var near = camera.GetScreenRectFromBounds(nearObject);
             var far = camera.GetScreenRectFromBounds(farObject);
@@ -57,7 +57,7 @@ namespace GoThrough.Utility
         /// <param name="renderer">The object.</param>
         /// <returns>An screen-space boundary of the object.</returns>
         // With thanks to http://www.turiyaware.com/a-solution-to-unitys-camera-worldtoscreenpoint-causing-ui-elements-to-display-when-object-is-behind-the-camera/
-        public static MinMax3D GetScreenRectFromBounds(this Camera camera, MeshFilter renderer)
+        internal static MinMax3D GetScreenRectFromBounds(this Camera camera, MeshFilter renderer)
         {
             MinMax3D minMax = new MinMax3D(float.MaxValue, float.MinValue);
 
@@ -96,16 +96,16 @@ namespace GoThrough.Utility
             return minMax;
         }
 
-        public struct MinMax3D
+        internal struct MinMax3D
         {
-            public float xMin;
-            public float xMax;
-            public float yMin;
-            public float yMax;
-            public float zMin;
-            public float zMax;
+            internal float xMin;
+            internal float xMax;
+            internal float yMin;
+            internal float yMax;
+            internal float zMin;
+            internal float zMax;
 
-            public MinMax3D(float min, float max)
+            internal MinMax3D(float min, float max)
             {
                 this.xMin = min;
                 this.xMax = max;
@@ -115,7 +115,7 @@ namespace GoThrough.Utility
                 this.zMax = max;
             }
 
-            public void AddPoint(Vector3 point)
+            internal void AddPoint(Vector3 point)
             {
                 xMin = Mathf.Min(xMin, point.x);
                 xMax = Mathf.Max(xMax, point.x);

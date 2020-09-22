@@ -6,14 +6,14 @@ namespace GoThrough.Utility
     /// <summary>
     /// Some helper methods for UnityEngine.GameObject class.
     /// </summary>
-    public static class GameObjectExtensions
+    internal static class GameObjectExtensions
     {
         /// <summary>
         /// Get a list of all materials curretly attached to <paramref name="gameObject"/> or any of it's children.
         /// </summary>
         /// <param name="gameObject">The GameObject.</param>
         /// <returns>A list of materials attached to <paramref name="gameObject"/> or any of it's children.</returns>
-        public static List<Material> GetMaterials(this GameObject gameObject)
+        internal static List<Material> GetMaterials(this GameObject gameObject)
         {
             var renderers = gameObject.GetComponentsInChildren<MeshRenderer>();
             var materials = new List<Material>();
@@ -31,7 +31,7 @@ namespace GoThrough.Utility
         /// <typeparam name="T">The component type.</typeparam>
         /// <param name="gameObject">The GameObject.</param>
         /// <returns>The existing or created Component.</returns>
-        static public T GetOrAddComponent<T>(this GameObject gameObject) where T : Component
+        static internal T GetOrAddComponent<T>(this GameObject gameObject) where T : Component
         {
             return gameObject.GetComponent<T>() ?? gameObject.AddComponent<T>();
         }

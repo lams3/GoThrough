@@ -6,10 +6,9 @@ using Random = UnityEngine.Random;
 
 namespace GoThrough.Samples.UnsolvableMaze
 {
-
-    public class MazeBuilder : MonoBehaviour
+    internal class MazeBuilder : MonoBehaviour
     {
-        public Traveller player;
+        internal Traveller player;
         
         private Dictionary<Portal, Cell> portalToCell; 
         private Cell[] cells;

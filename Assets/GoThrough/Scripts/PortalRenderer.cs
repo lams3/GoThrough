@@ -45,11 +45,19 @@ namespace GoThrough
             set => this.maxRecursionDepth = value;
         }
 
-        public RenderTexturePool RenderTexturePool { get; private set; }
+        #endregion
 
-        public Camera BaseCamera { get; private set; }
+        #region InternalProperties
 
-        public Camera PortalCamera { get; private set; }
+        internal RenderTexturePool RenderTexturePool { get; private set; }
+
+        internal Camera BaseCamera { get; private set; }
+
+        internal Camera PortalCamera { get; private set; }
+
+        #endregion
+
+        #region PrivateProperties
 
         private int CurrentWidth => this.BaseCamera.targetTexture ? this.BaseCamera.targetTexture.width : Screen.width;
         private int CurrentHeight => this.BaseCamera.targetTexture ? this.BaseCamera.targetTexture.height : Screen.height;

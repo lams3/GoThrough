@@ -21,8 +21,6 @@ namespace GoThrough
 
         #region PublicProperties
 
-        public Transform OutTransform => this.outTransform;
-
         public Portal Destination
         {
             get => this.destination;
@@ -33,6 +31,12 @@ namespace GoThrough
                     PortalManager.Instance?.Subscribe(this);
             }
         }
+
+        #endregion
+
+        #region InternalProperties
+
+        internal Transform OutTransform => this.outTransform;
 
         #endregion
 
@@ -108,14 +112,14 @@ namespace GoThrough
 
         #endregion
 
-        #region PublicMethods
+        #region InternalMethods
 
         /// <summary>
         /// Checks if the portal is visible by <paramref name="camera"/>.
         /// </summary>
         /// <param name="camera">The camera.</param>
         /// <returns>True if <paramref name="camera"/> can see the portal.</returns>
-        public bool IsVisibleFrom(Camera camera)
+        internal bool IsVisibleFrom(Camera camera)
         {
             return this.screen.IsVisibleFrom(camera);
         }
@@ -126,7 +130,7 @@ namespace GoThrough
         /// <param name="camera">The camera.</param>
         /// <param name="frame">The other portal.</param>
         /// <returns>True if the portal can be seen through the frame of <paramref name="frame"/> by <paramref name="camera"/>.</returns>
-        public bool IsVisibleWithin(Camera camera, Portal frame)
+        internal bool IsVisibleWithin(Camera camera, Portal frame)
         {
             return camera.BoundsOverlap(frame.screenMeshFilter, this.screenMeshFilter);
         }
@@ -135,7 +139,7 @@ namespace GoThrough
         /// Sets the portal's screen texture.
         /// </summary>
         /// <param name="texture">The texture to be used.</param>
-        public void SetTexture(Texture texture)
+        internal void SetTexture(Texture texture)
         {
             this.screen.material.SetTexture("_MainTex", texture);
         }
@@ -144,7 +148,7 @@ namespace GoThrough
         /// Retrieves the texture currently assigned to the portal's screen.
         /// </summary>
         /// <returns>The texture currently assigned.</returns>
-        public Texture GetTexture()
+        internal Texture GetTexture()
         {
             return this.screen.material.GetTexture("_MainTex");
         }
@@ -153,7 +157,7 @@ namespace GoThrough
         /// Calculates the clipping plane of the portal in world space.
         /// </summary>
         /// <returns>The clipping plane of the portal in world space.</returns>
-        public Vector4 GetClippingPlane()
+        internal Vector4 GetClippingPlane()
         {
             Plane clipPlane = new Plane(-this.OutTransform.forward, this.OutTransform.position);
             Vector4 clipPlaneVector = new Vector4(clipPlane.normal.x, clipPlane.normal.y, clipPlane.normal.z, clipPlane.distance);
@@ -164,7 +168,7 @@ namespace GoThrough
         /// Setup the screen to avoid nearplane clipping.
         /// </summary>
         /// <param name="camera">The camera to avoid clipping with.</param>
-        public void SetupScreen(Camera camera)
+        internal void SetupScreen(Camera camera)
         {
             float halfHeight = camera.nearClipPlane * Mathf.Tan(camera.fieldOfView * 0.5f * Mathf.Deg2Rad);
             float halfWidth = halfHeight * camera.aspect;
@@ -181,7 +185,7 @@ namespace GoThrough
         /// <summary>
         /// Enable the screen.
         /// </summary>
-        public void EnableScreen()
+        internal void EnableScreen()
         {
             this.screen.shadowCastingMode = ShadowCastingMode.TwoSided;
             this.screen.enabled = true;
@@ -190,7 +194,7 @@ namespace GoThrough
         /// <summary>
         /// Disable the screen.
         /// </summary>
-        public void DisableScreen()
+        internal void DisableScreen()
         {
             this.screen.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
             this.screen.enabled = false;

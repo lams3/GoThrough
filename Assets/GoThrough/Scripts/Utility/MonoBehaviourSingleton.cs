@@ -5,7 +5,7 @@ namespace GoThrough.Utility
 
     /// <summary>
     /// Inherit from this base class to create a singleton.
-    /// e.g. public class MyClassName : Singleton<MyClassName> {}
+    /// e.g. class MyClassName : Singleton<MyClassName> {}
     /// </summary>
     public class MonoBehaviourSingleton<T> : MonoBehaviour where T : MonoBehaviour
     {
@@ -17,7 +17,7 @@ namespace GoThrough.Utility
         /// <summary>
         /// Access singleton instance through this propriety.
         /// </summary>
-        public static T Instance
+        internal static T Instance
         {
             get
             {
