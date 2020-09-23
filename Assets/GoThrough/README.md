@@ -1,6 +1,6 @@
 # GoThrough
 
-GoThrough is an Unity plugin made for the Universal Render Pipeline that enables it's users to easily add transformative portals to their scenes. The tool's usage is described bellow.
+GoThrough is an Unity plugin made for the Universal Render Pipeline that enables it's users to easily add transformative portals to their scenes. Usage of the [latest release](https://github.com/lams3/GoThrough/releases/tag/v1.0.0) is described bellow.
 
 ##  Setup the PortalManager
 
