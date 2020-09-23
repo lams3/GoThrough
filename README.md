@@ -6,14 +6,14 @@ GoThrough is an Unity plugin made for the Universal Render Pipeline that enables
 
 The first step to have GoThrough Portals working in your scene, is to place an instance of the PortalManager prefab on it. The prefab can be found at the GoThrough/Prefabs folder.
 
-![Drag the PortalManager prefab.](./Assets/GoThrough/.Docs/PortalManager.png)
+![Drag the PortalManager prefab.](./Assets/GoThrough/Docs/PortalManager.png)
 
 ## Setup a PortalRenderer
 
 To properly render Portals, a camera must have an PortalRenderer component attached to it. This component is responsible for managing all the resources needed to correctly render Portals. Recursion depth and the maximum number of textures allocated can be changed through the inspector.
 
-![Add a PortalRenderer component to the Camera.](./Assets/GoThrough/.Docs/PortalRenderer1.png)
-![PortalRenderer component added.](./Assets/GoThrough/.Docs/PortalRenderer2.png)
+![Add a PortalRenderer component to the Camera.](./Assets/GoThrough/Docs/PortalRenderer1.png)
+![PortalRenderer component added.](./Assets/GoThrough/Docs/PortalRenderer2.png)
 
 ## Setup Travellers
 
@@ -21,11 +21,11 @@ In order to travel through Portals, GameObjects need to be properly configured a
 
 First, any graphical part (meshes) of the GameObject should be moved to a separate child object. The materials in those meshes should also use one of the shaders in the GoThrough/Shaders/Traveller folder.
 
-![The Player prefab.](./Assets/GoThrough/.Docs/PlayerGfx.png)
+![The Player prefab.](./Assets/GoThrough/Docs/PlayerGfx.png)
 
 Then a Traveller component must be added to the GameObject with a reference to it's graphics child previously created.
 
-![The Player prefab.](./Assets/GoThrough/.Docs/PlayerPrefab.png)
+![The Player prefab.](./Assets/GoThrough/Docs/PlayerPrefab.png)
 
 GoThrough's Traveller Component doesn't currently support rigged meshes as part of the graphics GameObject.
 
@@ -33,4 +33,4 @@ GoThrough's Traveller Component doesn't currently support rigged meshes as part 
 
 Portals can be placed using the Portal prefab in GoThrough/Prefabs. After placing a Portal in the scene, it's destination should be referenced through the inspector. A Portal's size can be adjusted by scaling it's screen GameObject.
 
-![The Portal prefab.](./Assets/GoThrough/.Docs/Portal.png)
+![The Portal prefab.](./Assets/GoThrough/Docs/Portal.png)
