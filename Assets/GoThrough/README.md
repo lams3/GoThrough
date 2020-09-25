@@ -64,9 +64,5 @@ GoThrough is freely available for free non-commercial use, and may be redistribu
 
 ## Authors
 
-- Luca Silva (lams3@cin.ufpe.br)
-- Lucas Valença (lvrma@cin.ufpe.br)
-- Arlindo Gomes (agsn@cin.ufpe.br)
-- Lucas Figueiredo (lsf@cin.ufpe.br)
-- Veronica Teichrieb (vt@cin.ufpe.br)
+- [Luca Ananias Moraes da Silva](https://lams3.github.io) (lams3@cin.ufpe.br)
 - [Voxar Labs](https://www.cin.ufpe.br/~voxarlabs) (voxarlabs@cin.ufpe.br)
