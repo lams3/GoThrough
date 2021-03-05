@@ -95,6 +95,11 @@ namespace GoThrough
             RenderPipelineManager.endCameraRendering -= this.RenderPipelineManager_endCameraRendering;
         }
 
+        private void OnDestroy()
+        {
+            DestroyImmediate(this.PortalCamera.gameObject);
+        }
+
         #endregion
 
         #region PrivateMethods
@@ -119,7 +124,7 @@ namespace GoThrough
 
         private void RenderPipelineManager_endCameraRendering(ScriptableRenderContext arg1, Camera arg2)
         {
-            this.RenderTexturePool.ReleaseAllRenderTextures();
+            this.RenderTexturePool?.ReleaseAllRenderTextures();
         }
 
         #endregion

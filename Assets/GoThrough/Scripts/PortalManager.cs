@@ -1,5 +1,7 @@
 ﻿using GoThrough.Utility;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace GoThrough
 {
@@ -11,6 +13,8 @@ namespace GoThrough
         #region PrivateFields
 
         private HashSet<Portal> portals = new HashSet<Portal>();
+
+        private List<PortalRenderer> sceneViewRenderers = new List<PortalRenderer>();
 
         #endregion
         
@@ -40,6 +44,35 @@ namespace GoThrough
         internal void Unsubscribe(Portal portal)
         {
             this.portals.Remove(portal);
+        }
+
+        #endregion
+
+        #region Lifecycle
+
+        private void OnEnable()
+        {
+            RenderPipelineManager.beginCameraRendering += this.RenderPipelineManager_beginCameraRendering;
+        }
+
+        private void OnDisable()
+        {
+            RenderPipelineManager.beginCameraRendering -= this.RenderPipelineManager_beginCameraRendering;
+
+            foreach (PortalRenderer renderer in this.sceneViewRenderers)
+                DestroyImmediate(renderer);
+
+            this.sceneViewRenderers.Clear();
+        }
+
+        #endregion
+
+        #region PrivateMethods
+
+        private void RenderPipelineManager_beginCameraRendering(ScriptableRenderContext _, Camera cam)
+        {
+            if (cam.cameraType == CameraType.SceneView)
+                this.sceneViewRenderers.Add(cam.gameObject.GetOrAddComponent<PortalRenderer>());
         }
 
         #endregion

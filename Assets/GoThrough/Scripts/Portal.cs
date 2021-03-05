@@ -27,8 +27,10 @@ namespace GoThrough
             set
             {
                 this.destination = value;
-                if (this.isActiveAndEnabled)
+                if (this.isActiveAndEnabled && value != null)
                     PortalManager.Instance?.Subscribe(this);
+                else
+                    PortalManager.Instance?.Unsubscribe(this);
             }
         }
 
