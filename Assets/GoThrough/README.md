@@ -60,7 +60,7 @@ Portals can be placed using the Portal prefab in GoThrough/Prefabs. After placin
 
 ## License
 
-GoThrough is freely available for free non-commercial use, and may be redistributed under these conditions. Please, see [LICENSE](./LICENSE) for further details. Interested in a commercial license? Contact [Voxar Labs](https://www.cin.ufpe.br/~voxarlabs) at voxarlabs@cin.ufpe.br.
+GoThrough is available under the permissive [MIT License](./LICENSE). You may use, modify, distribute, sublicense, and sell copies of the software, provided that the copyright and license notice are preserved.
 
 ## Authors
 
